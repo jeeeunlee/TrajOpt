@@ -1,0 +1,3 @@
+[submodule "src/rossy_utils"]
+	path = src/rossy_utils
+	url = git@github.com:jeeeunlee/rossy_utils.git
