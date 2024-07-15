@@ -1,0 +1,11 @@
+# BasedOnStyle:  Google
+# ColumnLimit: 120
+# IncludeCategories:
+#   - Regex:           '^<.*\.h>'
+#     Priority:        1
+#   - Regex:           '^<.*'
+#     Priority:        2
+#   - Regex:           '^"rtcl/.*'
+#     Priority:        4
+#   - Regex:           '.*'
+#     Priority:        3

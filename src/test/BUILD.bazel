@@ -1,0 +1,10 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_test(
+    name = "cccb_spline_test",
+    srcs = ["cccb_spline_test.cc"],
+    deps = [
+        "@bazel_rossy//:rossy_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

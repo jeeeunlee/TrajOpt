@@ -1,0 +1,67 @@
+workspace(name = "trajopt")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+
+# Rules
+http_archive(
+    name = "rules_python",
+    sha256 = "a3a6e99f497be089f81ec082882e40246bfd435f52f4e82f37e89449b04573f6",
+    strip_prefix = "rules_python-0.10.2",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.10.2.tar.gz",
+)
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "18ae58793e9036305e02333f6d59c9e0ea73e6d066d874c04bb83a1c5c9ac4a7",
+    strip_prefix = "bazel-skylib-872e9b06e18ae8ba2897cb65b9aaa172aa6279f3",
+    url = "https://github.com/bazelbuild/bazel-skylib/archive/872e9b06e18ae8ba2897cb65b9aaa172aa6279f3.tar.gz",
+)
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+_ALL_CONTENT = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
+http_archive(
+    name = "rules_foreign_cc",
+    sha256 = "ff5b7cdb650377b5baf358e38abf7d849395add601116393b16e722ffb33eb4b",
+    strip_prefix = "rules_foreign_cc-34fa6a796d6933cc0529950fee313579cd0d8c51",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/34fa6a796d6933cc0529950fee313579cd0d8c51.tar.gz",
+)
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+rules_foreign_cc_dependencies()
+
+
+# ExtTools from rossy_utils
+http_archive(
+    name = "bazel_rossy",
+    sha256 = "904aef42e1931409fb0af559ffc4f54ee50bec4ba095c94e96a7ba2d1008b1ca",
+    strip_prefix = "rossy_utils-bazel-build",
+    url = "https://github.com/jeeeunlee/rossy_utils/archive/bazel-build.tar.gz",
+)
+# eigen
+load("@bazel_rossy//thirdparty-bazel/eigen:repository.bzl", "eigen_repository")
+eigen_repository(version="3.4.0")
+# pinocchio
+load("@bazel_rossy//thirdparty-bazel/pinocchio:repository.bzl", "pinocchio_repository")
+pinocchio_repository(version="3.1.0")
+# Generate local_config_clang repository and configure clang toolchain.
+load("@bazel_rossy//thirdparty-bazel/clang:clang_configure.bzl", "clang_autoconf")
+clang_autoconf(
+    name = "local_config_clang",
+    version = "14",
+)
+
+http_archive(
+    name = "com_google_googletest",
+    sha256 = "ae91b02dbc0816f23b86c771b28699dfb15c0791752b18aa475ad2cc5f4e1cfb",
+    strip_prefix = "googletest-a1cc8c55195661a58ad60c3bb062a0b9c302710d",
+    url = "https://github.com/google/googletest/archive/a1cc8c55195661a58ad60c3bb062a0b9c302710d.tar.gz",
+)
+

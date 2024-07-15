@@ -1,0 +1,40 @@
+---
+# clang-tidy configuration for this project.
+#
+# Explanation for why some of the checks are disabled:
+#
+# -bugprone-easily-swappable-parameters: hard to design around this in certain
+#    scenarios like comparator functions and overriding third-party interfaces
+# -bugprone-lambda-function-name: SPDLOG macros that capture __FUNCTION__ are
+#    used inside lambdas
+# -bugprone-reserved-identifier: Temporarily added because logger.h uses
+#    reserved identiifiers in macros.
+
+# Top-level config file.
+InheritParentConfig: False
+
+# TODO(alok): Add the following checks:
+# google, misc, modernize, portability, readability
+Checks: >
+    -*,
+    abseil-*,
+    boost-*,
+    bugprone-*,
+    concurrency-*,
+    performance-*,
+    -bugprone-easily-swappable-parameters,
+    -bugprone-lambda-function-name,
+    -bugprone-reserved-identifier,
+
+# Only lint rtcl header files (not system or third-party).
+HeaderFilterRegex: '^\.\/rtcl\/'
+
+# Use .clang-format file for formatting automated fixes.
+FormatStyle: 'file'
+
+# Treat all warnings as errors.
+WarningsAsErrors: '*'
+
+CheckOptions:
+    - key: concurrency-mt-unsafe.FunctionSet
+      value: glibc
