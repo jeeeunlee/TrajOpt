@@ -17,16 +17,7 @@ http_archive(
     url = "https://github.com/bazelbuild/bazel-skylib/archive/872e9b06e18ae8ba2897cb65b9aaa172aa6279f3.tar.gz",
 )
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
 bazel_skylib_workspace()
-
-_ALL_CONTENT = """\
-filegroup(
-    name = "all_srcs",
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-"""
 
 http_archive(
     name = "rules_foreign_cc",
@@ -37,28 +28,8 @@ http_archive(
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 rules_foreign_cc_dependencies()
 
-
-# ExtTools from rossy_utils
-# http_archive(
-#     name = "bazel_rossy",
-#     sha256 = "904aef42e1931409fb0af559ffc4f54ee50bec4ba095c94e96a7ba2d1008b1ca",
-#     strip_prefix = "rossy_utils-bazel-build",
-#     url = "https://github.com/jeeeunlee/rossy_utils/archive/bazel-build.tar.gz",
-# )
-
-
-# eigen
-load("//rossy_utils/thirdparty-bazel/eigen:repository.bzl", "eigen_repository")
-eigen_repository(version="3.4.0")
-# pinocchio
-load("//rossy_utils/thirdparty-bazel/pinocchio:repository.bzl", "pinocchio_repository")
-pinocchio_repository(version="3.1.0")
-# Generate local_config_clang repository and configure clang toolchain.
-load("//rossy_utils/thirdparty-bazel/clang:clang_configure.bzl", "clang_autoconf")
-clang_autoconf(
-    name = "local_config_clang",
-    version = "14",
-)
+############################
+## rossy_utils
 # libClp
 new_local_repository(
     name = "libClp",
@@ -71,7 +42,21 @@ new_local_repository(
     path = "/usr",
     build_file = "//rossy_utils/thirdparty-bazel/libCoinUtils:BUILD.bazel"
 )
+# eigen
+load("//rossy_utils/thirdparty-bazel/eigen:repository.bzl", "eigen_repository")
+eigen_repository(version="3.4.0")
+# # pinocchio
+load("//rossy_utils/thirdparty-bazel/pinocchio:repository.bzl", "pinocchio_repository")
+pinocchio_repository(version="2.6.10")
+# Generate local_config_clang repository and configure clang toolchain.
+load("//rossy_utils/thirdparty-bazel/clang:clang_configure.bzl", "clang_autoconf")
+clang_autoconf(
+    name = "local_config_clang",
+    version = "14",
+)
 
+############################
+## Ext. tools
 http_archive(
     name = "com_google_googletest",
     sha256 = "ae91b02dbc0816f23b86c771b28699dfb15c0791752b18aa475ad2cc5f4e1cfb",
