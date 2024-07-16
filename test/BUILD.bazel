@@ -4,7 +4,7 @@ cc_test(
     name = "cccb_spline_test",
     srcs = ["cccb_spline_test.cc"],
     deps = [
-        "@bazel_rossy//:rossy_utils",
+        "//rossy_utils:lib_rossy_utils",
         "@com_google_googletest//:gtest_main",
     ],
 )
