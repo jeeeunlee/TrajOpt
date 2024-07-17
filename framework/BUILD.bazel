@@ -1,0 +1,19 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_library(
+    name = "cccb_trajopt",
+    srcs = [file for file in glob(["*.cpp", "cccb_trajopt/*.cpp"])],
+    hdrs = [file for file in glob(["*.hpp", "cccb_trajopt/*.hpp"])],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@eigen",
+        "@pinocchio",
+        "@libCoinUtils",
+        "@libClp",
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",
+    ],
+)
+
+
+
