@@ -6,13 +6,13 @@
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
 #include "framework/cccb_trajopt/cccb_trajopt_solver.hpp"
 #include "framework/cccb_trajopt/obstacle_manager.hpp"
+#include "cccb_traj_planner.hpp"
 
 
 // CCCB-spline based Trajectory optimization planner
 CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem* _robot, 
-    CCCBTrajManager* _cccb_traj, int _robot_type, int _link_idx) 
-    :Planner(_robot), robot_type_(_robot_type), 
-    link_idx_(_link_idx), threshold_pinv_(0.2) {
+    CCCBTrajManager* _cccb_traj, int _link_idx) 
+    :Planner(_robot), link_idx_(_link_idx), threshold_pinv_(0.2) {
     rossy_utils::pretty_constructor(1, "CCCBspline Trajectory Optimization Planner");
 
     cccb_traj_ = _cccb_traj;
@@ -35,9 +35,7 @@ bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {
     // user_cmd: WPT_DATA()
     if(b_planned_== false){
         b_planned_ = true;
-        b_planned_firstvisit_=false;
-
-        
+        b_planned_firstvisit_=false;        
         bool soln_exist = trajopt_solver_->solve(planning_cmd, obstacles_, cccb_traj_);
         return soln_exist;
     }else{
@@ -104,4 +102,10 @@ void CCCBTrajOptPlanner::setAccLimit(const Eigen::VectorXd &am){
 void CCCBTrajOptPlanner::setJerkLimit(const Eigen::VectorXd &jm){
     rossy_utils::pretty_print(jm, std::cout, "setJerkLimit");
     jerk_limit_ = jm; 
+}
+
+void CCCBTrajOptPlanner::getPlannedResult(WPT_DATA * knot_path, WPT_DATA * knot_vel, WPT_DATA * knot_acc, WPT_DATA * knot_jerk)
+{
+    trajopt_solver_-> getKnotValues(
+        knot_path, knot_vel, knot_acc, knot_jerk);
 }

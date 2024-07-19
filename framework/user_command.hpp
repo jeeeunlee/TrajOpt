@@ -46,6 +46,26 @@ public:
     Eigen::VectorXd max_joint_jerk;    
 };
 
+
+class SOLUTION{
+public:
+    SOLUTION(){    
+        h=0.;  
+        path.clear();
+        velocity.clear();
+        acceleration.clear();
+        jerk.clear();
+      }
+    ~SOLUTION(){}
+  public:
+    double h;
+    std::vector< Eigen::VectorXd > path;
+    std::vector< Eigen::VectorXd > velocity;
+    std::vector< Eigen::VectorXd > acceleration;
+    std::vector< Eigen::VectorXd > jerk;       
+};
+
+
 class WPT_DATA{
   public:
     WPT_DATA(){
@@ -54,7 +74,7 @@ class WPT_DATA{
     ~WPT_DATA(){}
 
     int getsize(){return data.size();}
-    Eigen::VectorXd getdata(int i){
+    Eigen::VectorXd getdata(unsigned int i){
       if(i>0 && i<data.size()) return data[i];
       else return Eigen::VectorXd::Zero(0);
     }

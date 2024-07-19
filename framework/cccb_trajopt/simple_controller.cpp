@@ -4,12 +4,10 @@
 
 // Test Controller
  
-SimpleController::SimpleController(RobotSystem* _robot, 
-                              Planner* _planner, CCCBTrajManager* _cccb_traj)
+SimpleController::SimpleController(RobotSystem* _robot, Planner* _planner)
   : Controller(_robot, _planner) { 
     rossy_utils::pretty_constructor(1, "Simple Controller");
-
-    cccb_traj_ = _cccb_traj;
+    
     ndof_ = robot_->getNumDofs();
     q_lower_ = robot_->GetPositionLowerLimits();
     q_upper_ = robot_->GetPositionUpperLimits();
@@ -17,7 +15,6 @@ SimpleController::SimpleController(RobotSystem* _robot,
     qdot_upper_ = robot_->GetVelocityUpperLimits();
 }
 
-SimpleController::~SimpleController(){}
 
 // Get Command through Test
 void SimpleController::getCommand(RobotCommand* cmd){

@@ -1,0 +1,9 @@
+# configuration for test_interface.cpp
+# check 2024.07.18
+panda:
+    tool_link_idx: 20 # panda_hand
+    robot_urdf: config/urdf_files/franka_panda.urdf
+
+rs020n: 
+    tool_link_idx: 16 # wrist_3_link
+    robot_urdf: config/urdf_files/rs020n.urdf

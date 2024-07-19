@@ -1,5 +1,25 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
+
+cc_test(
+    name = "lp_solver_test",
+    srcs = ["lp_solver_test.cc"],
+    deps = [
+        "@highs"
+    ],
+)
+
+cc_test(
+    name = "cccb_trajopt_test",
+    srcs = ["cccb_trajopt_test.cc"],
+    deps = [
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",
+        "//framework:cccb_trajopt",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_test(
     name = "cccb_spline_test",
     srcs = ["cccb_spline_test.cc"],

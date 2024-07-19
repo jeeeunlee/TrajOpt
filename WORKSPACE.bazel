@@ -1,15 +1,9 @@
 workspace(name = "trajopt")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 
 # Rules
-http_archive(
-    name = "rules_python",
-    sha256 = "a3a6e99f497be089f81ec082882e40246bfd435f52f4e82f37e89449b04573f6",
-    strip_prefix = "rules_python-0.10.2",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.10.2.tar.gz",
-)
-
 http_archive(
     name = "bazel_skylib",
     sha256 = "18ae58793e9036305e02333f6d59c9e0ea73e6d066d874c04bb83a1c5c9ac4a7",
@@ -30,18 +24,6 @@ rules_foreign_cc_dependencies()
 
 ############################
 ## rossy_utils
-# libClp
-new_local_repository(
-    name = "libClp",
-    path = "/usr",
-    build_file = "//rossy_utils/thirdparty-bazel/libClp:BUILD.bazel"
-)
-# libCoinUtils
-new_local_repository(
-    name = "libCoinUtils",
-    path = "/usr",
-    build_file = "//rossy_utils/thirdparty-bazel/libCoinUtils:BUILD.bazel"
-)
 # eigen
 load("//rossy_utils/thirdparty-bazel/eigen:repository.bzl", "eigen_repository")
 eigen_repository(version="3.4.0")
@@ -54,6 +36,42 @@ clang_autoconf(
     name = "local_config_clang",
     version = "14",
 )
+############################
+# HiGHS
+git_repository(
+    name = "rules_python",
+    tag = "0.31.0",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
+
+# Protobuf
+git_repository(
+    name = "com_google_protobuf",
+    tag = "v26.1",
+    remote = "https://github.com/protocolbuffers/protobuf.git",
+)
+
+# Load common dependencies.
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
+# ZLIB
+new_git_repository(
+    name = "zlib",
+    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
+    tag = "v1.2.11",
+    remote = "https://github.com/madler/zlib.git",
+)
+http_archive(
+    name = "highs",
+    sha256 = "5ff96c14ae19592d3568e9ae107624cbaf3409d328fb1a586359f0adf9b34bf7",
+    strip_prefix = "HiGHS-1.7.2",
+    url = "https://github.com/ERGO-Code/HiGHS/archive/v1.7.2/HiGHS-1.7.2.tar.gz",
+)
+############################
 
 ############################
 ## Ext. tools

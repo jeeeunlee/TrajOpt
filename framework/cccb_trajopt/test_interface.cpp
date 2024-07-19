@@ -15,19 +15,24 @@
 #include "framework/cccb_trajopt/cccb_traj_planner.hpp"
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
 
-TestInterface::TestInterface(int robot_type)
-    :EnvInterface(), robot_type_(robot_type) {    
+
+
+TestInterface::TestInterface()
+    :EnvInterface() {    
     rossy_utils::color_print(myColor::BoldCyan, rossy_utils::border);
     rossy_utils::pretty_constructor(0, "Test Interface");
 
     // robot_urdf, link_idx_
-    setConfiguration("/etc/opt/dex/truck_rwc_dev/dhc/test.yaml");
+    // setConfiguration("/etc/opt/dex/truck_rwc_dev/dhc/test.yaml");
+    // setConfiguration("config/test.yaml");
+    robot_urdf_path_ =  "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
+    link_idx_ = 20; // panda_hand
         
     // class constructors    
     robot_ = new RobotSystem(robot_urdf_path_);    
     cccb_traj_ = new CCCBTrajManager();
-    planner_ = new CCCBTrajOptPlanner(robot_, cccb_traj_, robot_type_, link_idx_);
-    controller_ = new SimpleController( robot_, planner_, cccb_traj_);
+    planner_ = new CCCBTrajOptPlanner(robot_, cccb_traj_, link_idx_);
+    controller_ = new SimpleController( robot_, planner_);
     clock_ = new Clock();    
 
     running_time_ = 0.;
@@ -47,13 +52,16 @@ TestInterface::~TestInterface() {
 }
 
 void TestInterface::setConfiguration(const std::string& cfgfile){
+    // setting robot_urdf_path_, link_idx_
+    std::string robot_type = "rs_020n";
     try {
-        YAML::Node cfg = YAML::LoadFile(cfgfile);
-        std::string robot_type = ROBOT_TYPE::names[robot_type_];
+        YAML::Node cfg = YAML::LoadFile(cfgfile);        
         // std::cout<<" robot_type = "<< robot_type.c_str() << std::endl;
         robot_urdf_path_ = rossy_utils::readParameter<std::string>(
                             cfg[robot_type], "robot_urdf");        
         rossy_utils::readParameter(cfg[robot_type], "tool_link_idx", link_idx_);
+        std::cout<<" robot_urdf_path_ = "<< robot_urdf_path_.c_str() << std::endl;
+        std::cout<<" tool_link_idx = "<< link_idx_ << std::endl;
     } catch (std::runtime_error& e) {
         std::cout << "Error reading parameter [" << e.what() << "] at file: ["
                   << __FILE__ << "]" << std::endl
@@ -101,9 +109,9 @@ void TestInterface::updateJerkLimit(const Eigen::VectorXd &jm){
 }
 
 
-void TestInterface::getPlannedResult(const double& time_step,
+void TestInterface::getPlannedTrajectory(const double& time_step,
                                         TRAJ_DATA* traj_data){ 
-    std::cout << "getPlannedResult " << std::endl;;
+    std::cout << "getPlannedTrajectory " << std::endl;;
     // generate desired q, qdot
     Eigen::VectorXd q, qdot;
     Eigen::VectorXd x, xdot;
@@ -132,6 +140,12 @@ void TestInterface::getPlannedResult(const double& time_step,
 
     // Assume, planned result will be reset
     planner_->reset(); // bplanned = true
+}
+
+void TestInterface::getPlannedResult(WPT_DATA* knot_path, 
+        WPT_DATA* knot_vel, WPT_DATA* knot_acc, WPT_DATA* knot_jerk){
+    ((CCCBTrajOptPlanner*)planner_)->getPlannedResult(
+        knot_path, knot_vel, knot_acc, knot_jerk);
 }
 
 // SensorData : q, qdot

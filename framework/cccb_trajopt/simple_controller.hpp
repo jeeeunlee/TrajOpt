@@ -3,21 +3,17 @@
 #include "framework/controller.hpp"
 
 class Planner;
-class CCCBTrajManager;
 
 // Test Controller
 class SimpleController: public Controller{  
   public:   
-    SimpleController(RobotSystem* _robot, 
-                  Planner* _planner, CCCBTrajManager* _cccb_traj);
+    SimpleController(RobotSystem* _robot, Planner* _planner);
     ~SimpleController();
 
     // Get Command through Test
     void getCommand(RobotCommand* _cmd);
 
     Eigen::VectorXd q_cmd_last_;
-
-    CCCBTrajManager* cccb_traj_;
 
   private:
     void enforcePositionLimits(Eigen::VectorXd& q_cmd, 

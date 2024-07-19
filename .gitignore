@@ -1,4 +1,10 @@
-*.zip
+# build files / configuration
 bazel-*
 MODULE.bazel*
 *.json
+
+# personal
+*.zip
+
+# dexterity IP
+config/urdf_files/dex/*

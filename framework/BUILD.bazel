@@ -8,8 +8,6 @@ cc_library(
     deps = [
         "@eigen",
         "@pinocchio",
-        "@libCoinUtils",
-        "@libClp",
         "//rossy_utils:rossy_utils",
         "//rossy_utils:robot_system",
     ],
