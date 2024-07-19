@@ -93,22 +93,19 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
 
     infc->doPlanning(plancmd);
 
-    WPT_DATA* knot_path = new WPT_DATA();
-    WPT_DATA* knot_vel = new WPT_DATA();
-    WPT_DATA* knot_acc = new WPT_DATA();
-    WPT_DATA* knot_jerk = new WPT_DATA();
+    SOLUTION* imp_soln = new SOLUTION();
 
-    infc->getPlannedResult(knot_path, knot_vel, knot_acc, knot_jerk);
+    infc->getPlannedResult(imp_soln);
 
     double EPS = 1e-8;
     for(int i(0); i<solution->path.size() ; ++i)    
-        EXPECT_NEAR((solution->path[i]-knot_path->data[i]).norm(), 0., EPS);
+        EXPECT_NEAR((solution->path[i]-imp_soln->path[i]).norm(), 0., EPS);
     for(int i(0); i<solution->velocity.size() ; ++i)    
-        EXPECT_NEAR((solution->velocity[i]-knot_vel->data[i]).norm(), 0., EPS);
+        EXPECT_NEAR((solution->velocity[i]-imp_soln->velocity[i]).norm(), 0., EPS);
     for(int i(0); i<solution->acceleration.size() ; ++i)    
-        EXPECT_NEAR((solution->acceleration[i]-knot_acc->data[i]).norm(), 0., EPS);
+        EXPECT_NEAR((solution->acceleration[i]-imp_soln->acceleration[i]).norm(), 0., EPS);
     for(int i(0); i<solution->jerk.size() ; ++i)    
-        EXPECT_NEAR((solution->jerk[i]-knot_jerk->data[i]).norm(), 0., EPS);
+        EXPECT_NEAR((solution->jerk[i]-imp_soln->jerk[i]).norm(), 0., EPS);
 
     infc->getPlannedTrajectory(0.05, traj_data);
 

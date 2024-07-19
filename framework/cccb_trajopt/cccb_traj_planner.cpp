@@ -104,8 +104,7 @@ void CCCBTrajOptPlanner::setJerkLimit(const Eigen::VectorXd &jm){
     jerk_limit_ = jm; 
 }
 
-void CCCBTrajOptPlanner::getPlannedResult(WPT_DATA * knot_path, WPT_DATA * knot_vel, WPT_DATA * knot_acc, WPT_DATA * knot_jerk)
+void CCCBTrajOptPlanner::getPlannedResult(SOLUTION * soln)
 {
-    trajopt_solver_-> getKnotValues(
-        knot_path, knot_vel, knot_acc, knot_jerk);
+    trajopt_solver_-> getKnotValues(soln);
 }

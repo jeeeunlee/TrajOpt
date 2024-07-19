@@ -46,8 +46,7 @@ class TestInterface : public EnvInterface {
       void getPlannedTrajectory(const double& time_step,
                            TRAJ_DATA* traj_data);
 
-      void getPlannedResult(WPT_DATA* knot_path, WPT_DATA* knot_vel, 
-      WPT_DATA* knot_acc, WPT_DATA* knot_jerk);
+      void getPlannedResult(SOLUTION * soln);
 
 
    private:

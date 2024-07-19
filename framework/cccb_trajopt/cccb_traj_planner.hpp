@@ -44,9 +44,7 @@ class CCCBTrajOptPlanner: public Planner{
     void setJerkLimit(const Eigen::VectorXd &jm);
 
     // for check
-    void getPlannedResult(WPT_DATA* knot_path, 
-        WPT_DATA* knot_vel, WPT_DATA* knot_acc, WPT_DATA* knot_jerk);
-
+    void getPlannedResult(SOLUTION * soln);
     
 };
 

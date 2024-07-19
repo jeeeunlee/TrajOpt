@@ -142,10 +142,8 @@ void TestInterface::getPlannedTrajectory(const double& time_step,
     planner_->reset(); // bplanned = true
 }
 
-void TestInterface::getPlannedResult(WPT_DATA* knot_path, 
-        WPT_DATA* knot_vel, WPT_DATA* knot_acc, WPT_DATA* knot_jerk){
-    ((CCCBTrajOptPlanner*)planner_)->getPlannedResult(
-        knot_path, knot_vel, knot_acc, knot_jerk);
+void TestInterface::getPlannedResult(SOLUTION * soln){
+    ((CCCBTrajOptPlanner*)planner_)->getPlannedResult(soln);
 }
 
 // SensorData : q, qdot

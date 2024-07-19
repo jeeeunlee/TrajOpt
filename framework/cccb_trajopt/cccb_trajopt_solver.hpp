@@ -31,10 +31,7 @@ class CCCBTrajOptSolver{
                                 Eigen::VectorXd &b);
 
         // for check
-        void getKnotValues(WPT_DATA * knot_path, 
-                            WPT_DATA * knot_vel, 
-                            WPT_DATA * knot_acc, 
-                            WPT_DATA * knot_jerk);
+        void getKnotValues(SOLUTION * soln);
 
     public:
         Clock* clock_;

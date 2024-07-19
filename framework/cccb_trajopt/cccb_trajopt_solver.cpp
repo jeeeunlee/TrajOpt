@@ -182,34 +182,30 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &Xbar,
 
 }
 
-void CCCBTrajOptSolver::getKnotValues(WPT_DATA * knot_path, 
-                                WPT_DATA * knot_vel, 
-                                WPT_DATA * knot_acc, 
-                                WPT_DATA * knot_jerk){
-    std::cout<<" checkSplinePrint " << std::endl;
+void CCCBTrajOptSolver::getKnotValues(SOLUTION * soln){
     Eigen::VectorXd tmp = Ap_*CPVec_ + bp_;
     // Eigen::MatrixXd p = rossy_utils::VectortoMatrix(tmp,2);
-    knot_path->data.clear();
+    soln->path.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
-        knot_path->data.push_back( tmp.segment(i*dim_,dim_) );
+        soln->path.push_back( tmp.segment(i*dim_,dim_) );
 
     tmp = (Av_*CPVec_ + bv_)/h_;
     // Eigen::MatrixXd v = rossy_utils::VectortoMatrix(tmp,2);
-    knot_vel->data.clear();
+    soln->velocity.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
-        knot_vel->data.push_back( tmp.segment(i*dim_,dim_) );
+        soln->velocity.push_back( tmp.segment(i*dim_,dim_) );
 
     tmp = (Aa_*CPVec_ + ba_)/h_/h_;
     // Eigen::MatrixXd a = rossy_utils::VectortoMatrix(tmp,2);
-    knot_acc->data.clear();
+    soln->acceleration.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
-        knot_acc->data.push_back( tmp.segment(i*dim_,dim_) );
+        soln->acceleration.push_back( tmp.segment(i*dim_,dim_) );
 
     tmp = (Aj_*CPVec_ + bj_)/h_/h_/h_;
     // Eigen::MatrixXd j = rossy_utils::VectortoMatrix(tmp,2);
-    knot_jerk->data.clear();
+    soln->jerk.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
-        knot_jerk->data.push_back( tmp.segment(i*dim_,dim_) ); 
+        soln->jerk.push_back( tmp.segment(i*dim_,dim_) ); 
 }
 
 
