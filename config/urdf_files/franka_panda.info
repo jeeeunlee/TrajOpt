@@ -1,0 +1,27 @@
+ ==== Body Node ====
+constexpr int panda_link0 = 2;
+constexpr int panda_link1 = 4;
+constexpr int panda_link2 = 6;
+constexpr int panda_link3 = 8;
+constexpr int panda_link4 = 10;
+constexpr int panda_link5 = 12;
+constexpr int panda_link6 = 14;
+constexpr int panda_link7 = 16;
+constexpr int panda_link8 = 18;
+constexpr int panda_hand = 20;
+constexpr int panda_leftfinger = 22;
+constexpr int panda_rightfinger = 24;
+constexpr int panda_hand_center = 26;
+ ==== DoF ====
+constexpr int panda_joint1 = 1;
+constexpr int panda_joint2 = 2;
+constexpr int panda_joint3 = 3;
+constexpr int panda_joint4 = 4;
+constexpr int panda_joint5 = 5;
+constexpr int panda_joint6 = 6;
+constexpr int panda_joint7 = 7;
+ ==== Num ====
+constexpr int n_bodynode = 13;
+constexpr int n_dof = 7;
+ ==== Just info ====
+13, 7, 7, 7
