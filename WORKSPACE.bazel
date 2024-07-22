@@ -36,14 +36,20 @@ clang_autoconf(
     name = "local_config_clang",
     version = "14",
 )
-############################
+##########
 # HiGHS
-git_repository(
+# http_archive(
+#     name = "rules_python",
+#     sha256 = "68bccf2b525dd23c55a46c0e639204d6c8139ee7f62fe0eb9ebc359e6919d022",
+#     strip_prefix = "rules_python-0.34.0",
+#     url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.34.0.zip",
+# )
+http_archive(
     name = "rules_python",
-    tag = "0.31.0",
-    remote = "https://github.com/bazelbuild/rules_python.git",
+    sha256 = "778aaeab3e6cfd56d681c89f5c10d7ad6bf8d2f1a72de9de55b23081b2d31618",
+    strip_prefix = "rules_python-0.34.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.34.0/rules_python-0.34.0.tar.gz",
 )
-
 load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
@@ -75,6 +81,7 @@ http_archive(
 
 ############################
 ## Ext. tools
+# GTEST
 http_archive(
     name = "com_google_googletest",
     sha256 = "ae91b02dbc0816f23b86c771b28699dfb15c0791752b18aa475ad2cc5f4e1cfb",
@@ -82,3 +89,20 @@ http_archive(
     url = "https://github.com/google/googletest/archive/a1cc8c55195661a58ad60c3bb062a0b9c302710d.tar.gz",
 )
 
+
+# Pybind
+
+# Load pybind11 for python bindings
+http_archive(
+  name = "pybind11_bazel",
+  strip_prefix = "pybind11_bazel-2.11.1",
+  urls = ["https://github.com/pybind/pybind11_bazel/archive/v2.11.1.zip"],
+)
+http_archive(
+  name = "pybind11",
+  build_file = "@pybind11_bazel//:pybind11.BUILD",
+  strip_prefix = "pybind11-2.11.1",
+  urls = ["https://github.com/pybind/pybind11/archive/v2.11.1.tar.gz"],
+)
+load("@pybind11_bazel//:python_configure.bzl", "python_configure")
+python_configure(name = "local_config_python")

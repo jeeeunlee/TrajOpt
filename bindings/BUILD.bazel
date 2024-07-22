@@ -1,0 +1,19 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+
+pybind_extension(
+    name = "interface_pybind",
+    srcs = [file for file in glob(["test_interface_pybind.cpp"])],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//framework:cccb_trajopt", 
+    ],
+    # linkopts = ["-lpython3.11"],
+)
+
+py_library(
+    name = "interface_pybind",
+    data = [":interface_pybind.so"],
+)
+
+
