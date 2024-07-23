@@ -1,9 +1,9 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
 pybind_extension(
-    name = "interface_pybind",
-    srcs = [file for file in glob(["test_interface_pybind.cpp"])],
+    name = "trajopt_interface",
+    srcs = ["trajopt_interface.cpp"],
     visibility = ["//visibility:public"],
     deps = [
         "//framework:cccb_trajopt", 
@@ -12,8 +12,15 @@ pybind_extension(
 )
 
 py_library(
-    name = "interface_pybind",
-    data = [":interface_pybind.so"],
+    name = "trajopt_interface",
+    data = [":trajopt_interface.so"],
 )
 
+py_test(
+    name = "test_trajopt_interface",
+    srcs = ["test_trajopt_interface.py"],
+    deps = [
+        ":trajopt_interface"
+    ],
+)
 

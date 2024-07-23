@@ -17,7 +17,7 @@
 
 
 
-TestInterface::TestInterface()
+TestInterface::TestInterface(const std::string &urdf_path)
     :EnvInterface() {    
     rossy_utils::color_print(myColor::BoldCyan, rossy_utils::border);
     rossy_utils::pretty_constructor(0, "Test Interface");
@@ -25,7 +25,8 @@ TestInterface::TestInterface()
     // robot_urdf, link_idx_
     // setConfiguration("/etc/opt/dex/truck_rwc_dev/dhc/test.yaml");
     // setConfiguration("config/test.yaml");
-    robot_urdf_path_ =  "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
+    // robot_urdf_path_ =  "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
+    robot_urdf_path_ = urdf_path;
     link_idx_ = 20; // panda_hand
         
     // class constructors    

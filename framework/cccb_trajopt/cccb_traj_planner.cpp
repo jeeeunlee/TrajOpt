@@ -36,7 +36,17 @@ bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {
     if(b_planned_== false){
         b_planned_ = true;
         b_planned_firstvisit_=false;        
-        bool soln_exist = trajopt_solver_->solve(planning_cmd, obstacles_, cccb_traj_);
+        bool soln_exist = trajopt_solver_->solve(
+            planning_cmd, obstacles_, cccb_traj_);
+        
+        if(soln_exist){
+            start_time_ = current_time_;
+            planned_time_ = cccb_traj_->getMotionPeriod();
+            end_time_ = start_time_ + planned_time_;
+            std::cout<<" start_time_ = "<<start_time_<<std::endl;
+            std::cout<<" planned_time_ = "<<planned_time_<<std::endl;
+            std::cout<<" end_time_ = "<<end_time_<<std::endl; 
+        }     
         return soln_exist;
     }else{
         std::cout<<" Planned trajectory isn't over"<<std::endl;
@@ -78,14 +88,14 @@ bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd,
     if(b_planned_)
     {
         if(!b_planned_firstvisit_){
+            std::cout<<" b_planned_firstvisit_ = false /  ";
+            std::cout<<" current_time_ = " << current_time_ <<std::endl;
             start_time_ = current_time_;
             b_planned_firstvisit_=true;
         }
         cccb_traj_->getCommand(current_time_ - start_time_ , 
                                 q_cmd, qdot_cmd, qddot_cmd);
-        rossy_utils::saveVector(q_cmd,"Aaron/q");
-        rossy_utils::saveVector(qdot_cmd,"Aaron/qdot");
-        rossy_utils::saveVector(qddot_cmd,"Aaron/qddot");
+
         return true; 
     }
     return false;        

@@ -92,7 +92,9 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd,
     cccb_traj->setTimeDuration(hbar);
     
     // checkSplinePrint();
-    return false;
+
+    // TODO : check soln exist later
+    return true;
 }
 
 void CCCBTrajOptSolver::updateConstraints(const Eigen::VectorXd &CPbar,
@@ -178,11 +180,10 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &Xbar,
         ah = rossy_utils::vStack(ah, ahtmp);
         b = rossy_utils::vStack(b,btmp);
     }
-
-
 }
 
 void CCCBTrajOptSolver::getKnotValues(SOLUTION * soln){
+    soln->h = h_;
     Eigen::VectorXd tmp = Ap_*CPVec_ + bp_;
     // Eigen::MatrixXd p = rossy_utils::VectortoMatrix(tmp,2);
     soln->path.clear();
@@ -213,10 +214,17 @@ void CCCBTrajOptSolver::getKnotValues(SOLUTION * soln){
 
 void CCCBTrajOptSolver::updateCoeffs(PLANNING_COMMAND* planning_cmd, 
                                 CCCBTrajManager* cccb_traj){
+    
     N_ = planning_cmd->joint_path.size()+1;
     dim_ = planning_cmd->joint_path[0].size();    
     pi_ = planning_cmd->joint_path[0];
     pf_ = planning_cmd->joint_path[N_-2];
+
+    std::cout << "updateCoeffs : ";
+    std::cout << "N_ = " << N_ << ", ";
+    std::cout << "dim_ = " << dim_ << ", ";
+    std::cout << "pi_ = " << pi_.transpose() << ", ";
+    std::cout << "pf_ = " << pf_.transpose() << std::endl;
                             
     Ap_ = cccb_traj->computeAp(N_,dim_);
     Av_ = cccb_traj->computeAv2(N_,dim_);

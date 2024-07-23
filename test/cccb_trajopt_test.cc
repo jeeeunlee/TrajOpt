@@ -80,9 +80,10 @@ void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution){
     json_listoflist_to_vecofeigen(json["solution"]["jerk"], solution->jerk);
 }
 
-// 4: rs020, 5: panda
+
 TEST(CCCBTrajOptTest, CheckNoColCase){
-    TestInterface* infc = new TestInterface();
+    std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
+    TestInterface* infc = new TestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
     SOLUTION* solution = new SOLUTION();

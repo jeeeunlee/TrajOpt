@@ -32,7 +32,7 @@ class TestInterface : public EnvInterface {
       Eigen::VectorXd cmd_jtrq_;
 
    public:
-      TestInterface();
+      TestInterface(const std::string &urdf_path);
       ~TestInterface();
       
       virtual void getCommand(SensorData* _sensor_data, RobotCommand* _command_data);
