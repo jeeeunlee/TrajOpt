@@ -52,26 +52,6 @@ TestInterface::~TestInterface() {
     delete clock_;
 }
 
-void TestInterface::setConfiguration(const std::string& cfgfile){
-    // setting robot_urdf_path_, link_idx_
-    std::string robot_type = "rs_020n";
-    try {
-        YAML::Node cfg = YAML::LoadFile(cfgfile);        
-        // std::cout<<" robot_type = "<< robot_type.c_str() << std::endl;
-        robot_urdf_path_ = rossy_utils::readParameter<std::string>(
-                            cfg[robot_type], "robot_urdf");        
-        rossy_utils::readParameter(cfg[robot_type], "tool_link_idx", link_idx_);
-        std::cout<<" robot_urdf_path_ = "<< robot_urdf_path_.c_str() << std::endl;
-        std::cout<<" tool_link_idx = "<< link_idx_ << std::endl;
-    } catch (std::runtime_error& e) {
-        std::cout << "Error reading parameter [" << e.what() << "] at file: ["
-                  << __FILE__ << "]" << std::endl
-                  << std::endl;
-        exit(0);
-    }
-}
-
-
 void TestInterface::getCommand(SensorData* _sensor_data, RobotCommand* _command_data) {
     updateRobotSystem(_sensor_data);   
     controller_->getCommand(_command_data);

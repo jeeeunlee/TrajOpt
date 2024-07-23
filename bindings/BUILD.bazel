@@ -2,8 +2,8 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
 pybind_extension(
-    name = "trajopt_interface",
-    srcs = ["trajopt_interface.cpp"],
+    name = "trajopt_planner",
+    srcs = ["trajopt_planner_pybind.cpp"],
     visibility = ["//visibility:public"],
     deps = [
         "//framework:cccb_trajopt", 
@@ -12,15 +12,15 @@ pybind_extension(
 )
 
 py_library(
-    name = "trajopt_interface",
-    data = [":trajopt_interface.so"],
+    name = "trajopt_planner",
+    data = [":trajopt_planner.so"],
 )
 
 py_test(
-    name = "test_trajopt_interface",
-    srcs = ["test_trajopt_interface.py"],
+    name = "test_trajopt_planner",
+    srcs = ["test_trajopt_planner.py"],
     deps = [
-        ":trajopt_interface"
+        ":trajopt_planner"
     ],
 )
 

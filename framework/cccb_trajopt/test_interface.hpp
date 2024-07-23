@@ -52,5 +52,4 @@ class TestInterface : public EnvInterface {
    private:
       void updateRobotSystem(SensorData * data); 
       void saveData(SensorData* _sensor_data, RobotCommand* _command_data);
-      void setConfiguration(const std::string& cfgfile);    
 };

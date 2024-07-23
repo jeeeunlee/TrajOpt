@@ -2,7 +2,7 @@
 import os
 import sys
 sys.path.insert(-1, os.getcwd() + "/bazel-bin/")
-from bindings import trajopt_interface
+from bindings import trajopt_planner
 
 import numpy as np
 from utils.pybullet_simulator import Simulator
@@ -11,7 +11,7 @@ import utils.pybullet_util as pybullet_util
 from simulator.configs.rl030a import Config
 # from simulator.configs.ra830l import Config
 
-from simulator.trajopt_interface import TrajoptInterface
+from simulator.trajopt_planner import TrajoptInterface
 
 
 

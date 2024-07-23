@@ -24,7 +24,7 @@ class PyInterface : public EnvInterface {
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(trajopt_interface, m) {
+PYBIND11_MODULE(trajopt_planner, m) {
   py::class_<TRAJ_DATA>(m, "TRAJ_DATA")
       .def(py::init<>())
       .def_readwrite("tdata", &TRAJ_DATA::tdata)

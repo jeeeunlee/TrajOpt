@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.insert(-1, os.getcwd() + "/bazel-bin/")
-from bindings import trajopt_interface
+from bindings import trajopt_planner
 from simulator.utils.interface_wrapper import RobotInterface
 import numpy as np
 
@@ -10,10 +10,10 @@ import numpy as np
 class TrajoptInterface(RobotInterface):
     def __init__(self, Config):
         self.Config = Config
-        self.interface = trajopt_interface.TestInterface(os.getcwd() + Config.ROBOT_FILE_NAME)
-        self.sensor_data = trajopt_interface.SensorData(Config.ROBOTDOF)
-        self.command = trajopt_interface.RobotCommand(Config.ROBOTDOF)
-        self.planning_cmd = trajopt_interface.PLANNING_COMMAND()
+        self.interface = trajopt_planner.TestInterface(os.getcwd() + Config.ROBOT_FILE_NAME)
+        self.sensor_data = trajopt_planner.SensorData(Config.ROBOTDOF)
+        self.command = trajopt_planner.RobotCommand(Config.ROBOTDOF)
+        self.planning_cmd = trajopt_planner.PLANNING_COMMAND()
 
     def get_command(self, 
                     t:float,  
@@ -41,5 +41,5 @@ class TrajoptInterface(RobotInterface):
         return self.planning_cmd
 
     def doPlanning(self, 
-                   planning_cmd: trajopt_interface.PLANNING_COMMAND):
+                   planning_cmd: trajopt_planner.PLANNING_COMMAND):
         return self.interface.doPlanning(planning_cmd)

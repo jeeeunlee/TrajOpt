@@ -7,4 +7,4 @@ MODULE.bazel*
 *.zip
 
 # dexterity IP
-config/urdf_files/dex/*
+simulator/configs/urdf_files/dex/*
