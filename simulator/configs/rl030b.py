@@ -3,8 +3,8 @@ import os
 file_dir = os.path.dirname(__file__)
 # print(file_dir)
 
-class Config(object):        
-    ROBOT_FILE_NAME = file_dir + "/urdf_files/dex/khi-rl030n-a.urdf"
+class Config(object):         
+    ROBOT_FILE_NAME = file_dir + "/urdf_files/dex/khi-rl030n-b.urdf"
     PYTHON_RUN_SCRIPT = None
     ROBOTDOF = 8
     INIT_JOINT_CONFIG = {'j1': 0.0,

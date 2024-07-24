@@ -40,8 +40,8 @@ class Simulator():
             
         # Create Robot, Ground, Environments
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
-        self.robot = p.loadURDF(os.getcwd() + Config.ROBOT_FILE_NAME, useFixedBase=1)
-        p.loadURDF(os.getcwd() + "/config/urdf_files/ground/plane.urdf", 
+        self.robot = p.loadURDF(Config.ROBOT_FILE_NAME, useFixedBase=1)
+        p.loadURDF(os.getcwd() + "/simulator/configs/urdf_files/ground/plane.urdf", 
                    [0, 0, 0], useFixedBase=1)
         
         _, _, _, self.joint_id, self.link_id = pybullet_util.get_robot_config(

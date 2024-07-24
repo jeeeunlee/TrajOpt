@@ -2,6 +2,7 @@
 bazel-*
 MODULE.bazel*
 *.json
+*.pyc
 
 # personal
 *.zip

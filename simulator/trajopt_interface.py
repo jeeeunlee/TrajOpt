@@ -1,19 +1,20 @@
-import os
-import sys
-sys.path.insert(-1, os.getcwd() + "/bazel-bin/")
+import setup_paths
+
 from bindings import trajopt_planner
 from simulator.utils.interface_wrapper import RobotInterface
 import numpy as np
 
 
 # wrapper for TrajoptInterface
-class TrajoptInterface(RobotInterface):
+class TrajoptPlanner(RobotInterface):
     def __init__(self, Config):
         self.Config = Config
-        self.interface = trajopt_planner.TestInterface(os.getcwd() + Config.ROBOT_FILE_NAME)
+        self.interface = trajopt_planner.TestInterface(Config.ROBOT_FILE_NAME)
         self.sensor_data = trajopt_planner.SensorData(Config.ROBOTDOF)
         self.command = trajopt_planner.RobotCommand(Config.ROBOTDOF)
         self.planning_cmd = trajopt_planner.PLANNING_COMMAND()
+        self.solution  = trajopt_planner.SOLUTION()
+        self.traj_data = trajopt_planner.TRAJ_DATA()
 
     def get_command(self, 
                     t:float,  
@@ -39,7 +40,39 @@ class TrajoptInterface(RobotInterface):
         self.planning_cmd.max_joint_acceleration = override*np.array(self.Config.ACCLERATION_LIMITS)
         self.planning_cmd.max_joint_jerk = override*np.array(self.Config.JERK_LIMITS)
         return self.planning_cmd
+    
+    def get_trajopt_results(self, 
+                            joint_path: np.ndarray,
+                            override: float = 0.5, # 0.1~1.0
+                            ):
+        self.planning_cmd.joint_path = joint_path
+        # self.planning_cmd.cartesian_path 
+        self.planning_cmd.max_joint_speed = override*np.array(self.Config.VELOCITY_LIMITS)
+        self.planning_cmd.max_joint_acceleration = override*np.array(self.Config.ACCLERATION_LIMITS)
+        self.planning_cmd.max_joint_jerk = override*np.array(self.Config.JERK_LIMITS)
+
+        self.interface.doPlanning(self.planning_cmd)
+
+        self.interface.getPlannedResult(self.solution)
+        if(self.Config.PRINT_RESULTS): self.printSolution()
+
+        self.interface.getPlannedTrajectory(self.Config.CONTROLLER_DT, 
+                                            self.traj_data)     
+
+        return self.traj_data.qdata
+
 
     def doPlanning(self, 
                    planning_cmd: trajopt_planner.PLANNING_COMMAND):
         return self.interface.doPlanning(planning_cmd)
+    
+    def printSolution(self):
+        print(self.solution.h)
+        print('\n')
+        print(self.solution.path)
+        print('\n')
+        print(self.solution.velocity)
+        print('\n')
+        print(self.solution.acceleration)
+        print('\n')
+        print(self.solution.jerk)

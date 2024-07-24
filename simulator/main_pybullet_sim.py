@@ -1,22 +1,23 @@
+import setup_paths
 
-import os
-import sys
-sys.path.insert(-1, os.getcwd() + "/bazel-bin/")
 from bindings import trajopt_planner
 
 import numpy as np
 from utils.pybullet_simulator import Simulator
 import utils.pybullet_util as pybullet_util
-# robot type
-from simulator.configs.rl030a import Config
-# from simulator.configs.ra830l import Config
 
-from simulator.trajopt_planner import TrajoptInterface
+# robot type
+# from simulator.configs.rl030a import Config
+# from simulator.configs.rl030b import Config
+# from simulator.configs.ra830a import Config
+from simulator.configs.ra830b import Config
+
+from simulator.trajopt_interface import TrajoptPlanner
 
 
 
 def main():    
-    interface = TrajoptInterface(Config)
+    interface = TrajoptPlanner(Config)
     
     sim = Simulator(Config, interface)
     sim.set_init_config(list(Config.INIT_JOINT_CONFIG.values()))
