@@ -2,3 +2,6 @@
 	path = rossy_utils
 	url = git@github.com:jeeeunlee/rossy_utils.git
 	branch = bazel-build
+[submodule "rtcl"]
+	path = rtcl
+	url = git@gitlab.com:dexrobo/banyan/rtcl.git
