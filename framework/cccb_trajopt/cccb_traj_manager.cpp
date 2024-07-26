@@ -45,12 +45,7 @@ double CCCBTrajManager::getMotionPeriod()
 }
 
 
-
-
-
-
 // Based on Clamped Cardinal Cubic B-spline properties:
-
 void CCCBTrajManager::setBSpline(const Eigen::VectorXd &pi, 
             const Eigen::VectorXd &pf,
             const std::vector<Eigen::VectorXd> &cp_in){

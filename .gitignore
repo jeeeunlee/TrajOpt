@@ -3,9 +3,11 @@ bazel-*
 MODULE.bazel*
 *.json
 *.pyc
+*.venv
 
 # personal
 *.zip
 
 # dexterity IP
 simulator/configs/urdf_files/dex/*
+simulator/point_cloud_data_generator/graphics*

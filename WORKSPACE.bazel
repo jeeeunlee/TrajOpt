@@ -23,7 +23,34 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 rules_foreign_cc_dependencies()
 
 ############################
-## rossy_utils
+## Ext. tools
+# GTEST
+http_archive(
+    name = "com_google_googletest",
+    sha256 = "ae91b02dbc0816f23b86c771b28699dfb15c0791752b18aa475ad2cc5f4e1cfb",
+    strip_prefix = "googletest-a1cc8c55195661a58ad60c3bb062a0b9c302710d",
+    url = "https://github.com/google/googletest/archive/a1cc8c55195661a58ad60c3bb062a0b9c302710d.tar.gz",
+)
+
+# Pybind
+# Load pybind11 for python bindings
+http_archive(
+  name = "pybind11_bazel",
+  strip_prefix = "pybind11_bazel-2.11.1",
+  urls = ["https://github.com/pybind/pybind11_bazel/archive/v2.11.1.zip"],
+)
+http_archive(
+  name = "pybind11",
+  build_file = "@pybind11_bazel//:pybind11.BUILD",
+  strip_prefix = "pybind11-2.11.1",
+  urls = ["https://github.com/pybind/pybind11/archive/v2.11.1.tar.gz"],
+)
+load("@pybind11_bazel//:python_configure.bzl", "python_configure")
+python_configure(name = "local_config_python")
+
+#----------------------------------------------------------#
+#            git submodule: rossy_utils                    #
+#----------------------------------------------------------#
 # eigen
 load("//rossy_utils/thirdparty-bazel/eigen:repository.bzl", "eigen_repository")
 eigen_repository(version="3.4.0")
@@ -36,14 +63,8 @@ clang_autoconf(
     name = "local_config_clang",
     version = "14",
 )
-##########
+
 # HiGHS
-# http_archive(
-#     name = "rules_python",
-#     sha256 = "68bccf2b525dd23c55a46c0e639204d6c8139ee7f62fe0eb9ebc359e6919d022",
-#     strip_prefix = "rules_python-0.34.0",
-#     url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.34.0.zip",
-# )
 http_archive(
     name = "rules_python",
     sha256 = "778aaeab3e6cfd56d681c89f5c10d7ad6bf8d2f1a72de9de55b23081b2d31618",
@@ -77,32 +98,193 @@ http_archive(
     strip_prefix = "HiGHS-1.7.2",
     url = "https://github.com/ERGO-Code/HiGHS/archive/v1.7.2/HiGHS-1.7.2.tar.gz",
 )
-############################
 
-############################
-## Ext. tools
-# GTEST
+
+#----------------------------------------------------------#
+#            git submodule: rtcl                           #
+#----------------------------------------------------------#
 http_archive(
-    name = "com_google_googletest",
-    sha256 = "ae91b02dbc0816f23b86c771b28699dfb15c0791752b18aa475ad2cc5f4e1cfb",
-    strip_prefix = "googletest-a1cc8c55195661a58ad60c3bb062a0b9c302710d",
-    url = "https://github.com/google/googletest/archive/a1cc8c55195661a58ad60c3bb062a0b9c302710d.tar.gz",
+    name = "com_github_stack_of_tasks_pinocchio",
+    build_file = "//rtcl/third_party/com_github_stack_of_tasks_pinocchio:BUILD.bazel",
+    sha256 = "a5ca2da3e85c311bfa274ce97d8e5532688cf9c69a4c5c17fcbaf925f99642ec",
+    strip_prefix = "pinocchio-2.6.16",
+    url = "https://github.com/stack-of-tasks/pinocchio/archive/refs/tags/v2.6.16.tar.gz",
+)
+new_local_repository(
+    name = "org_boost_boost",
+    build_file = "//rtcl/third_party/org_boost_boost:BUILD.bazel",
+    path = "/usr",
+)
+
+# @com_github_stack_of_tasks_pinocchio -> @pinocchio
+http_archive(
+    name = "org_tuxfamily_eigen_eigen3",
+    build_file = "//rtcl/third_party/org_tuxfamily_eigen_eigen3:BUILD.bazel",
+    sha256 = "b4c198460eba6f28d34894e3a5710998818515104d6e74e5cc331ce31e46e626",
+    strip_prefix = "eigen-3.4.0",
+    url = "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2",
+)
+# @org_tuxfamily_eigen_eigen3 -> @eigen
+
+_ALL_CONTENT = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+"""
+http_archive(
+    name = "com_github_ashtum_lazycsv",
+    build_file = "//rtcl/third_party/com_github_ashtum_lazycsv:BUILD.bazel",
+    sha256 = "cb8592fc0b563a1236dfadfc423a91d63e705ff0086941218800abda22530540",
+    strip_prefix = "lazycsv-844e3f318af2d9ede96039dd9f57ebf4cad59ce2",
+    url = "https://github.com/ashtum/lazycsv/archive/844e3f318af2d9ede96039dd9f57ebf4cad59ce2.tar.gz",
+)
+http_archive(
+    name = "com_github_fmtlib_fmt",
+    build_file = "//rtcl/third_party/com_github_fmtlib_fmt:BUILD.bazel",
+    sha256 = "5dea48d1fcddc3ec571ce2058e13910a0d4a6bab4cc09a809d8b1dd1c88ae6f2",
+    strip_prefix = "fmt-9.1.0",
+    url = "https://github.com/fmtlib/fmt/archive/refs/tags/9.1.0.tar.gz",
+)
+
+http_archive(
+    name = "com_github_gabime_spdlog",
+    build_file = "//rtcl/third_party/com_github_gabime_spdlog:BUILD.bazel",
+    sha256 = "ca5cae8d6cac15dae0ec63b21d6ad3530070650f68076f3a4a862ca293a858bb",
+    strip_prefix = "spdlog-1.11.0",
+    url = "https://github.com/gabime/spdlog/archive/refs/tags/v1.11.0.tar.gz",
+)
+http_archive(
+    name = "com_github_hpp_fcl",
+    build_file = "//rtcl/third_party/com_github_hpp_fcl:BUILD.bazel",
+    sha256 = "2d45c827a7e1234d7a6ad1d64439614988320ab267777a7bab76fa6bd1feb191",
+    strip_prefix = "hpp-fcl-2.2.0",
+    url = "https://github.com/humanoid-path-planner/hpp-fcl/archive/refs/tags/v2.2.0.tar.gz",
+)
+http_archive(
+    name = "com_github_jrl_umi3218_jrl_cmakemodules",
+    build_file = "//rtcl/third_party/com_github_jrl_umi3218_jrl_cmakemodules:BUILD.bazel",
+    sha256 = "17ea2b4df6cee07ecc525b29bacacff5efcc4df98da5be9c736682805dbf2519",
+    strip_prefix = "jrl-cmakemodules-e06b3db875a15bc631027c9097b46c1c5fef5280",
+    urls = ["https://github.com/jrl-umi3218/jrl-cmakemodules/archive/e06b3db875a15bc631027c9097b46c1c5fef5280.tar.gz"],
+)
+http_archive(
+    name = "com_github_qhull_qhull",
+    build_file = "//rtcl/third_party/com_github_qhull_qhull:BUILD.bazel",
+    sha256 = "09e5e4c5b2b8a9e617a46876fef5a3d33e70aa1d08a163ff05d37701327c3be7",
+    strip_prefix = "qhull-8.1-alpha1",
+    url = "https://github.com/qhull/qhull/archive/refs/tags/v8.1-alpha1.tar.gz",
+)
+
+http_archive(
+    name = "com_github_microsoft_gsl",
+    build_file = "//rtcl/third_party/com_github_microsoft_gsl:BUILD.bazel",
+    sha256 = "f0e32cb10654fea91ad56bde89170d78cfbf4363ee0b01d8f097de2ba49f6ce9",
+    strip_prefix = "GSL-4.0.0/include",
+    urls = ["https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.tar.gz"],
+)
+http_archive(
+    name = "com_github_nlohmann_json",
+    sha256 = "ad2139f54927689c91a9312fcc1ec975732dcfc0a640d9a71463fdff629ee607",
+    strip_prefix = "json-6af826d0bdb55e4b69e3ad817576745335f243ca",
+    url = "https://github.com/nlohmann/json/archive/6af826d0bdb55e4b69e3ad817576745335f243ca.tar.gz",
+)
+http_archive(
+    name = "com_github_ros_urdfdom",
+    build_file = "//rtcl/third_party/com_github_ros_urdfdom:BUILD.bazel",
+    sha256 = "3c780132d9a0331eb2116ea5dac6fa53ad2af86cb09f37258c34febf526d52b4",
+    strip_prefix = "urdfdom-3.0.0",
+    urls = ["https://github.com/ros/urdfdom/archive/refs/tags/3.0.0.tar.gz"],
+)
+http_archive(
+    name = "com_github_ros_urdfdom_headers",
+    build_file = "//rtcl/third_party/com_github_ros_urdfdom_headers:BUILD.bazel",
+    sha256 = "01b91c2f7cb42b0033cbdf559684a60001f9927e5d0a5a3682a344cc354f1d39",
+    strip_prefix = "urdfdom_headers-1.1.0",
+    urls = ["https://github.com/ros/urdfdom_headers/archive/refs/tags/1.1.0.tar.gz"],
+)
+http_archive(
+    name = "com_github_ros_console_bridge",
+    build_file = "//rtcl/third_party/com_github_ros_console_bridge:BUILD.bazel",
+    patch_args = ["-p1"],
+    patches = ["//rtcl/third_party/com_github_ros_console_bridge:0001-fix-add-generated-console_bridge_exports-header.patch"],
+    sha256 = "303a619c01a9e14a3c82eb9762b8a428ef5311a6d46353872ab9a904358be4a4",
+    strip_prefix = "console_bridge-1.0.2",
+    urls = ["https://github.com/ros/console_bridge/archive/refs/tags/1.0.2.tar.gz"],
+)
+http_archive(
+    name = "com_github_sewenew_redis_plus_plus",
+    build_file = "//rtcl/third_party/com_github_sewenew_redis_plus_plus:BUILD.bazel",
+    sha256 = "89cb83b0a23ac5825300c301814eab74aa3cdcfcd12e87d443c2692e367768ba",
+    strip_prefix = "redis-plus-plus-1.3.7",
+    url = "https://github.com/sewenew/redis-plus-plus/archive/refs/tags/1.3.7.tar.gz",
+)
+http_archive(
+    name = "com_github_redis_hiredis",
+    build_file = "//rtcl/third_party/com_github_redis_hiredis:BUILD.bazel",
+    sha256 = "fe6d21741ec7f3fc9df409d921f47dfc73a4d8ff64f4ac6f1d95f951bf7f53d6",
+    strip_prefix = "hiredis-1.1.0",
+    url = "https://github.com/redis/hiredis/archive/refs/tags/v1.1.0.tar.gz",
+)
+http_archive(
+    name = "openssl",
+    build_file_content = _ALL_CONTENT,
+    sha256 = "e8f73590815846db286d215950fdef9b882bb6b886d50acb431c0285782fe35b",
+    strip_prefix = "openssl-openssl-3.0.7",
+    url = "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.0.7.tar.gz",
+)
+http_archive(
+    name = "com_github_libuv_libuv",
+    build_file = "//rtcl/third_party/com_github_libuv_libuv:BUILD.bazel",
+    sha256 = "fbd543e20721cba4544244a127345d276503d36ff32b6f53bd0394a5430b62c9",
+    strip_prefix = "libuv-2638237e1fd6643ae8e7e4e2faa75b647e6f7248",
+    urls = ["https://github.com/libuv/libuv/archive/2638237e1fd6643ae8e7e4e2faa75b647e6f7248.tar.gz"],
+)
+http_archive(
+    name = "com_github_tinyobjloader_tinyobjloader",
+    build_file = "//rtcl/third_party/com_github_tinyobjloader_tinyobjloader:BUILD.bazel",
+    sha256 = "e1bc2e5547b562d33ca4a90b581717984a70d58113d83208dbc97c82e137b9fe",
+    strip_prefix = "tinyobjloader-2.0.0rc10",
+    url = "https://github.com/tinyobjloader/tinyobjloader/archive/refs/tags/v2.0.0rc10.tar.gz",
+)
+http_archive(
+    name = "net_sourceforge_tinyxml",
+    build_file = "//rtcl/third_party/net_sourceforge_tinyxml:BUILD.bazel",
+    patch_args = ["-p1"],
+    # Patches borrowed from https://github.com/conda-forge/tinyxml-feedstock
+    patches = [
+        "//rtcl/third_party/net_sourceforge_tinyxml:enforce-use-stl.patch",
+        "//rtcl/third_party/net_sourceforge_tinyxml:entity-encoding.patch",
+    ],
+    sha256 = "15bdfdcec58a7da30adc87ac2b078e4417dbe5392f3afb719f9ba6d062645593",
+    strip_prefix = "tinyxml",
+    urls = ["https://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.tar.gz"],
+)
+
+http_archive(
+    name = "com_google_absl",
+    patch_args = ["-p1"],
+    patches = ["//rtcl/third_party/com_google_absl:01-disable-no-tail-call-attribute.patch"],
+    sha256 = "ed8f3aef1918d43f043b9248f9fadeea1648c60d5dd2631c3df52d12d6fe3bc9",
+    strip_prefix = "abseil-cpp-d4607b3f05f3f22dda383efcb0aba7e7d9359823",
+    url = "https://github.com/abseil/abseil-cpp/archive/d4607b3f05f3f22dda383efcb0aba7e7d9359823.tar.gz",
+)
+git_repository(
+    name = "dexrobo_infrastructure_keyspace",
+    commit = "ca4c956a6d563cc9e40caae2c01b57eb7fde39c4",
+    remote = "https://project_7525631_bot:glpat-i1zhysDs__QxrJE-Azys@gitlab.com/dexrobo/infrastructure/keyspace.git",
+    shallow_since = "1637130968 +0000",
 )
 
 
-# Pybind
-
-# Load pybind11 for python bindings
-http_archive(
-  name = "pybind11_bazel",
-  strip_prefix = "pybind11_bazel-2.11.1",
-  urls = ["https://github.com/pybind/pybind11_bazel/archive/v2.11.1.zip"],
+new_local_repository(
+    name = "nvidia_cuda",
+    build_file = "//rtcl/third_party/nvidia_cuda:BUILD.bazel",
+    path = "/usr/local/cuda",
 )
-http_archive(
-  name = "pybind11",
-  build_file = "@pybind11_bazel//:pybind11.BUILD",
-  strip_prefix = "pybind11-2.11.1",
-  urls = ["https://github.com/pybind/pybind11/archive/v2.11.1.tar.gz"],
+new_local_repository(
+    name = "nvidia_optix",
+    build_file = "//rtcl/third_party/nvidia_optix:BUILD.bazel",
+    path = "/usr/local/include/optix",
 )
-load("@pybind11_bazel//:python_configure.bzl", "python_configure")
-python_configure(name = "local_config_python")

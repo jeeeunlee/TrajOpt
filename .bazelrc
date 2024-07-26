@@ -1,0 +1,99 @@
+build --config=gcc
+# build --config=c++2b
+# build --config=clang-default
+
+build:gcc --cxxopt -std=c++2a
+build:clang --cxxopt -std=c++20
+
+build:clang --copt -Wno-unused-but-set-variable
+
+build --copt -Wall
+build --copt -Wextra
+build --copt -Wshadow
+build --copt -Wconversion
+build --copt -Wpedantic
+# build --copt -Werror
+
+build:clang --copt -Wno-braced-scalar-init
+
+build --features=external_include_paths
+
+build --per_file_copt=dex/.*@-Wno-conversion,-Wno-float-conversion
+
+build --per_file_copt=external/com_github_cpp_redis_cpp_redis/sources/core/*.cpp@-Wno-conversion,-Wno-deprecated,-Wno-shadow
+build --per_file_copt=external/com_github_cpp_redis_tacopie/sources/network/*.cpp@-Wno-deprecated,-Wno-shadow,-Wno-conversion
+build --per_file_copt=external/com_github_hpp_fcl/src/.*.cpp@-Wno-shadow
+build --per_file_copt=external/com_github_redis_hiredis/.*.c@-Wno-conversion,-Wno-shadow,-Wno-sign-conversion,-Wno-unused-function
+build --per_file_copt=external/com_github_sewenew_redis_plus_plus/.*.cpp@-Wno-conversion
+build --per_file_copt=dex/infrastructure/math/kinematics/.*.cc@-Wno-ignored-qualifiers,-Wno-shadow,-Wno-unused-parameter
+build --per_file_copt=third_party/ikfast/rs020n.cc@-Wno-conversion,-Wno-ignored-qualifiers,-Wno-pedantic,-Wno-shadow,-Wno-unused-parameter
+
+build --per_file_copt=rtcl/examples/planning/planning.cc@-Wno-shadow
+
+build:gcc --cxxopt -fconcepts-diagnostics-depth=2
+
+build:gcc --per_file_copt=external/com_github_hpp_fcl/src/.*.cpp@-Wno-maybe-uninitialized
+build:gcc --per_file_copt=external/com_github_libuv_libuv/.*.c@-Wno-conversion,-Wno-implicit-function-declaration,-Wno-int-conversion,-Wno-pedantic,-Wno-shadow,-Wno-sign-conversion,-Wno-unused-but-set-parameter,-Wno-unused-parameter,-Wno-unused-result,-Wno-unused-variable,-Wno-return-type
+build:gcc --per_file_copt=external/com_github_qhull_qhull/src/libqhull_r/.*.c@-Wno-conversion,-Wno-maybe-uninitialized
+build:gcc --per_file_copt=external/com_google_absl/absl/.*.cc@-Wno-sign-conversion,-Wno-conversion,-Wno-shadow
+build:gcc --per_file_copt=external/net_sourceforge_tinyxml/.*.cpp@-Wno-implicit-fallthrough,-Wno-shadow
+build:gcc --per_file_copt=external/com_google_googletest/googlemock/src/.*.cc@-Wno-conversion
+build:gcc --per_file_copt=external/com_github_tinyobjloader_tinyobjloader/.*.c@-Wno-float-conversion
+
+build:clang --copt -Wno-unknown-warning-option
+build:clang --linkopt -Wno-fuse-ld-path
+build:clang --per_file_copt=external/com_github_libuv_libuv/.*.c@-Wno-conversion,-Wno-implicit-function-declaration,-Wno-int-conversion,-Wno-pedantic,-Wno-shadow,-Wno-sign-conversion,-Wno-unused-but-set-parameter,-Wno-unused-parameter,-Wno-unused-result,-Wno-unused-variable
+build:clang --per_file_copt=external/com_github_qhull_qhull/src/libqhull_r/.*.c@-Wno-conversion,-Wno-newline-eof,-Wno-unused-but-set-variable,-Wno-implicit-int-float-conversion
+build:clang --per_file_copt=external/com_google_absl/absl/.*.cc@-Wno-sign-conversion,-Wno-conversion,-Wno-shadow,-Wno-gcc-compat,-Wno-deprecated-builtins
+build:clang --per_file_copt=external/net_sourceforge_tinyxml/.*.cpp@-Wno-implicit-fallthrough,-Wno-shadow,-Wno-sign-conversion
+
+# Due to warnings in external dependencies - TODO: Fix system header warning suppression in clang
+build:clang --copt -Wno-implicit-float-conversion
+build:clang --copt -Wno-unused-but-set-variable
+build:clang --copt -Wno-delete-non-abstract-non-virtual-dtor
+build:clang --copt -Wno-deprecated-builtins
+build:clang --copt -Wno-sign-conversion
+# build:clang --copt --system-header-prefix=external/
+
+build:dbg --compilation_mode dbg
+# build:dbg --copt -rdynamic
+# build:dbg --copt -g
+
+build:prod --compilation_mode opt
+build:prod --copt -O3
+build:prod --copt -march=native
+build:prod --copt -ffast-math
+
+build:verbose --test_output=all
+
+# clang-tidy static analysis
+build:clang-tidy --copt -Wno-unknown-warning-option
+build:clang-tidy --aspects //tools/lint:clang-tidy.bzl%clang_tidy_aspect
+build:clang-tidy --output_groups clang_tidy_fixes
+
+build:c++2b --cxxopt -std=c++2b
+build:c++2b --repo_env=CC=gcc-12
+
+build:asan --config=dbg
+build:asan --copt -O2
+build:asan --copt -fsanitize=address
+build:asan --action_env=ASAN_OPTIONS=protect_shadow_gap=0:replace_intrin=0:detect_leaks=0
+build:asan --linkopt -fsanitize=address
+
+build:msan --config=dbg
+build:msan --copt -O2
+build:msan --copt -fsanitize=memory
+build:msan --linkopt -fsanitize=memory
+
+# build:ubsan --config=dbg
+# build:ubsan --config=clang++
+build:ubsan --copt -O2
+build:ubsan --copt -fsanitize=undefined
+build:ubsan --linkopt -fsanitize=undefined
+
+
+build:clang-default --config=clang
+build:clang-default --action_env=CC=clang-16
+
+build:clang++ --config=clang
+build:clang++ --action_env=CC=clang++-16
