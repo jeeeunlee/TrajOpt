@@ -270,13 +270,6 @@ http_archive(
     strip_prefix = "abseil-cpp-d4607b3f05f3f22dda383efcb0aba7e7d9359823",
     url = "https://github.com/abseil/abseil-cpp/archive/d4607b3f05f3f22dda383efcb0aba7e7d9359823.tar.gz",
 )
-git_repository(
-    name = "dexrobo_infrastructure_keyspace",
-    commit = "ca4c956a6d563cc9e40caae2c01b57eb7fde39c4",
-    remote = "https://project_7525631_bot:glpat-i1zhysDs__QxrJE-Azys@gitlab.com/dexrobo/infrastructure/keyspace.git",
-    shallow_since = "1637130968 +0000",
-)
-
 
 new_local_repository(
     name = "nvidia_cuda",
