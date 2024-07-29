@@ -57,6 +57,9 @@ eigen_repository(version="3.4.0")
 # # pinocchio
 load("//rossy_utils/thirdparty-bazel/pinocchio:repository.bzl", "pinocchio_repository")
 pinocchio_repository(version="2.6.10")
+#osg
+load("//rossy_utils/thirdparty-bazel/openSceneGraph:repository.bzl", "osg_repository")
+osg_repository()
 # Generate local_config_clang repository and configure clang toolchain.
 load("//rossy_utils/thirdparty-bazel/clang:clang_configure.bzl", "clang_autoconf")
 clang_autoconf(
