@@ -11,7 +11,7 @@ file_dir = os.path.dirname(__file__)
 data_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/0_raw_files"
 scadj_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/1_scale_adjustment"
 wt_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/2_watertight_10_000"
-pc_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/3_point_clouds/3cm"
+pc_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/3_point_clouds/100"
 # for robot link data (except gripper), they're scaled in [mm] so we rescale it to [m]
 for file in os.listdir(data_folder):
     print(file)
@@ -30,8 +30,8 @@ for file in os.listdir(data_folder):
     pcu.save_mesh_vfn(os.path.join(wt_folder, file ), vw, fw, nw)
 
     # Generate barycentric coordinates of random samples
-    # fid, bc = pcu.sample_mesh_poisson_disk(vw, fw, num_samples=1000)
-    fid, bc = pcu.sample_mesh_poisson_disk(v, f, num_samples=-1, radius=0.03)
+    fid, bc = pcu.sample_mesh_poisson_disk(vw, fw, num_samples=100)
+    # fid, bc = pcu.sample_mesh_poisson_disk(vw, fw, num_samples=-1, radius=0.005)
 
     # Interpolate the vertex positions and normals using the returned barycentric coordinates
     # to get sample positions and normals
