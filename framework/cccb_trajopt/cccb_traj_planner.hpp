@@ -42,6 +42,7 @@ class CCCBTrajOptPlanner: public Planner{
     void setVelLimit(const Eigen::VectorXd &vm);   
     void setAccLimit(const Eigen::VectorXd &am);
     void setJerkLimit(const Eigen::VectorXd &jm);
+    void setAlpha(double alpha);
 
     // for check
     void getPlannedResult(SOLUTION * soln);

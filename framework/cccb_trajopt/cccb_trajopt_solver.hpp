@@ -16,8 +16,7 @@ class CCCBTrajOptSolver{
                 ObstacleManager* obstacles, 
                 CCCBTrajManager* cccb_traj_);
         double getMinH(const Eigen::VectorXd &CPvec,
-                        PLANNING_COMMAND* planning_cmd, 
-                        CCCBTrajManager* cccb_traj);
+                        PLANNING_COMMAND* planning_cmd);
         void updateConstraints(const Eigen::VectorXd &Xbar,
                                 double hbar, 
                                 Eigen::MatrixXd &Ac,
@@ -30,11 +29,15 @@ class CCCBTrajOptSolver{
                                 Eigen::VectorXd &ah,
                                 Eigen::VectorXd &b);
 
+        void updateQuadCostCoeffs(const Eigen::VectorXd &CPbar,
+                                Eigen::MatrixXd &Q,
+                                Eigen::VectorXd &q);
+
         // for check
         void getKnotValues(SOLUTION * soln);
 
     public:
-        Clock* clock_;
+        double alpha_;
 
     private:
         // solution

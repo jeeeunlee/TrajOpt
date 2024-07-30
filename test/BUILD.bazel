@@ -39,3 +39,11 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "qp_solver_test",
+    srcs = ["qp_solver_test.cc"],
+    deps = [
+        "//rossy_utils:rossy_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

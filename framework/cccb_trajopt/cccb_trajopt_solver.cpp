@@ -2,32 +2,29 @@
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
 #include "framework/cccb_trajopt/obstacle_manager.hpp"
 #include "rossy_utils/solvers/lp_solver.hpp"
+#include "rossy_utils/solvers/qp_solver.hpp"
 #include "rossy_utils/math/math_utilities.hpp"
 #include "cccb_trajopt_solver.hpp"
-// functions on cccb splines
-
-
 
 CCCBTrajOptSolver::CCCBTrajOptSolver()
 {
+    alpha_ = -1.;
 }
 
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd, 
         ObstacleManager* obstacles, 
         CCCBTrajManager* cccb_traj){
-    std::cout<<" CCCBTrajOptSolver: solve" << std::endl;
 
     /* 1. initialize traj */
     // get initial CPs to track given path and h0 that satisfies constraints
     updateCoeffs(planning_cmd, cccb_traj);
     Eigen::MatrixXd CPvars0 = 
-        cccb_traj->findBSpline(planning_cmd->joint_path);
+        cccb_traj->findBSpline(planning_cmd->joint_path);    
 
     // CPvars = [cp[0], cp[1],...,] : dim x (N-3) matrix
     // CPvec = [cp[0]; cp[1];...] : dim*(N-3) x 1 vector
     Eigen::VectorXd CPvec0 = rossy_utils::MatrixtoVector(CPvars0);
-    double h0 = getMinH(CPvec0, planning_cmd, cccb_traj);
-    std::cout<<" I'm here 3: h0 = " << h0 << std::endl;
+    double h0 = getMinH(CPvec0, planning_cmd);
 
     // 2. optimization: find CPvec, h
     Eigen::VectorXd CPvec;
@@ -41,6 +38,11 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd,
     Eigen::VectorXd x, ah, b;
     Eigen::VectorXd c = Eigen::VectorXd::Zero(CPdim+1);
     c(CPdim) = -1.;
+
+    // ADDED for QP: 0.5*x'*Q*x + q'*x 
+    int Nf = planning_cmd->joint_path.size();
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(0); // CPdim+1
+    Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(0, 0); // CPdim+1, CPdim+1  
 
     // initialize norminal vars
     Eigen::VectorXd CPbar = CPvec0;
@@ -58,20 +60,31 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd,
         A << Ac, ah;
 
         // solve problem
-        double ret = rossy_utils::linprog(c, A, b, x);
+        if(alpha_ < 0)
+            double ret = rossy_utils::linprog(c, A, b, x);
+        else{
+            updateQuadCostCoeffs(CPbar, Q, q);
+            q += alpha_*c;
+            double ret = rossy_utils::qpprogHiGHS(Q, q, A, b, x);
+            // double ret = rossy_utils::qpprog(Q, q, -A, -b, x);
+        }
+        // std::cout<<" I'm here 6 " << std::endl;
 
         // update
         CPvec = CPbar + x.segment(0,CPdim);
-        h = getMinH(CPvec, planning_cmd, cccb_traj);
+        h = getMinH(CPvec, planning_cmd);
 
         // check terminate conditions
         if(h>hbar){
             std::cout<<"???? n_iter ["<<n_iter<<"], h="<<h<<std::endl;
             std::cout<<"???? h increased from" << hbar <<" to " << h << std::endl;
+            CPbar = CPvec;
+            hbar = h;
             break;
         }
-        else if((CPbar-CPvec).norm()<1e-3){
-            std::cout<<" termination at n_iter = " << n_iter << std::endl;
+        else if((hbar-h)<1e-3){ // (CPbar-CPvec).norm()<1e-3
+            std::cout << "Termination: h decreased from" << hbar <<" to " << h;
+            std::cout << " at n_iter = " << n_iter << std::endl;
             break;
         }
         else // (h<hbar)
@@ -92,10 +105,61 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd,
     cccb_traj->setTimeDuration(hbar);
     
     // checkSplinePrint();
-
     // TODO : check soln exist later
     return true;
 }
+
+void CCCBTrajOptSolver::updateQuadCostCoeffs(
+    const Eigen::VectorXd &CPbar,
+    Eigen::MatrixXd &Q,
+    Eigen::VectorXd &q)
+{
+    std::cout<<" I'm here : updateQuadCostCoeffs " << std::endl;
+    int dim = dim_;
+    int CPdim = CPbar.size();
+    int n = (int)(CPdim/dim); // = N-3   
+
+    // update Hessian only if none
+    std::cout<<" dim = " << dim << ", n="<< n  << ", CPdim = " << CPdim << std::endl;
+    if(Q.rows() == 0){
+        Q = Eigen::MatrixXd::Zero(CPdim+1, CPdim+1);
+
+        Eigen::MatrixXd Q1d = Eigen::MatrixXd::Zero(n,n);
+        Q1d.block(0,0,n,n) += 4.*Eigen::MatrixXd::Identity(n,n);
+        Q1d.block(1,0,n-1,n-1) += -2.*Eigen::MatrixXd::Identity(n-1,n-1);
+        Q1d.block(0,1,n-1,n-1) += -2.*Eigen::MatrixXd::Identity(n-1,n-1);
+        // std::cout <<"Q1d = "<<std::endl;
+        // std::cout << Q1d << std::endl;
+        Eigen::MatrixXd Qx = Q1d; // n x n
+        if(dim>1){
+            Eigen::MatrixXd repmat = Eigen::MatrixXd::Identity(dim,dim);
+            Qx = rossy_utils::kroneckerProduct(Q1d, repmat); // dn x dn
+        }
+        // std::cout<<"Qx = "<<std::endl;
+        // std::cout<< Qx << std::endl;        
+        Q.block(0,0,CPdim,CPdim) = Qx;
+        // Q(CPdim,CPdim) = 0.001; // just for regulation
+    }    
+    // std::cout<<"Q = "<<std::endl;
+    // std::cout<< Q << std::endl;
+
+    Eigen::VectorXd Cpi0,Cpi,Cpi1;
+    q = Eigen::VectorXd::Zero(CPdim+1);
+    for(int i(0); i<n; ++i)
+    {
+        Cpi = CPbar.segment(i*dim, dim);
+
+        if(i==0){ Cpi0 = pi_;}
+        else {Cpi0 = CPbar.segment((i-1)*dim, dim);}
+        
+        if(i==n-1){ Cpi1 = pf_;}
+        else {Cpi1 = CPbar.segment((i+1)*dim, dim);}
+
+        q.segment(i*dim, dim) = 2.*(- Cpi0 + 2.*Cpi - Cpi1);
+    }
+} 
+
+
 
 void CCCBTrajOptSolver::updateConstraints(const Eigen::VectorXd &CPbar,
                                         double hbar, 
@@ -242,8 +306,7 @@ void CCCBTrajOptSolver::updateCoeffs(PLANNING_COMMAND* planning_cmd,
 
 
 double CCCBTrajOptSolver::getMinH(const Eigen::VectorXd &CPvec,
-                                PLANNING_COMMAND* planning_cmd, 
-                                CCCBTrajManager* cccb_traj){
+                                PLANNING_COMMAND* planning_cmd){
     // vel*h = Av*CP + bv : dim*(N-2)
     Eigen::VectorXd velh = Av_ * CPvec + bv_;
     
@@ -256,16 +319,19 @@ double CCCBTrajOptSolver::getMinH(const Eigen::VectorXd &CPvec,
     // get optimal h that satisfies VC,AC,JC: dim*1
     Eigen::VectorXd hvec = rossy_utils::elementWiseDivisionExt(
         velh, planning_cmd->max_joint_speed);
-    double h1 = hvec.cwiseAbs().maxCoeff();
+    double hv1 = hvec.cwiseAbs().maxCoeff();
     hvec = rossy_utils::elementWiseDivisionExt(
         acch2, planning_cmd->max_joint_acceleration);
-    double h2 = hvec.cwiseAbs().maxCoeff(); 
+    double ha2 = hvec.cwiseAbs().maxCoeff(); 
     hvec = rossy_utils::elementWiseDivisionExt(
         jerkh3, planning_cmd->max_joint_jerk);
-    double h3 = hvec.cwiseAbs().maxCoeff();     
-    double h = std::max(std::max(h1,sqrt(h2)),pow(h3,1./3.));
-    std::cout<<" I'm here 3: h = " << h << ", " << 
-    h1 << "," << h2 << "," << h3 << "," <<  std::endl;
+    double hj3 = hvec.cwiseAbs().maxCoeff();     
+
+    double h = std::max(hv1, std::sqrt(ha2));
+    h = std::max(h, std::pow(hj3,1./3.));
+
+    std::cout<<" I'm here 3: h = " << h << ", hv=" << 
+    hv1 << ", ha=" << std::sqrt(ha2) << ", hj=" << std::pow(hj3,1./3.) << std::endl;
     return h;
 }
 

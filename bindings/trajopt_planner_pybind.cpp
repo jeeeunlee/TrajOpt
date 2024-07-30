@@ -73,7 +73,8 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def("getPlannedResult", &TestInterface::getPlannedResult)
       .def("updateVelLimit", &TestInterface::updateVelLimit)
       .def("updateAccLimit", &TestInterface::updateAccLimit)
-      .def("updateJerkLimit", &TestInterface::updateJerkLimit);
+      .def("updateJerkLimit", &TestInterface::updateJerkLimit)
+      .def("updateAlpha", &TestInterface::updateAlpha);
 
   py::class_<SensorData>(m, "SensorData")
       .def(py::init<int>())

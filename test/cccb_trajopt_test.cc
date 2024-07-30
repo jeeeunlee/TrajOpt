@@ -4,6 +4,8 @@
 // #include "rossy_utils/io/io_utilities.hpp"
 // #include "framework/cccb_trajopt/cccb_traj_planner.hpp"
 
+#include <string>
+#include <sstream>
 #include <fstream>
 #include <iostream>
 #include "rossy_utils/io/json.hpp"
@@ -55,8 +57,12 @@ void json_listoflist_to_vecofeigen(const nlohmann::json &j,
 }
 
 
-void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution){
-    std::ifstream fJson("/home/jelee/my_ws/TrajOpt/test/testdata/2d-non-collision/case2.json");
+void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){   
+    std::stringstream filenamess;
+    filenamess << "/home/jelee/my_ws/TrajOpt/test/testdata/2d-non-collision/case" << casenum <<".json";
+    std::string filename;
+    filenamess >> filename;
+    std::ifstream fJson(filename);
 
     std::stringstream buffer;
     buffer << fJson.rdbuf();
@@ -82,7 +88,7 @@ void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution){
 
 
 TEST(CCCBTrajOptTest, CheckNoColCase){
-    std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
+    std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
     TestInterface* infc = new TestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
@@ -90,7 +96,7 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
     TRAJ_DATA* traj_data = new TRAJ_DATA();
 
     // generate_rand_problem(plancmd);
-    read_case(plancmd, solution);
+    read_case(plancmd, solution, 2);
 
     infc->doPlanning(plancmd);
 
@@ -116,4 +122,47 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
     //     << traj_data->qdata[i].transpose() << "," 
     //     << traj_data->dqdata[i].transpose() << std::endl;
     // }
+}
+
+TEST(CCCBTrajOptTest, CheckNoColCaseQP){
+    std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
+    TestInterface* infc = new TestInterface(panda_urdf);
+
+    PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
+    SOLUTION* solution = new SOLUTION();
+    TRAJ_DATA* traj_data = new TRAJ_DATA();
+
+    // generate_rand_problem(plancmd);
+    read_case(plancmd, solution, 3);
+    infc->updateAlpha(50);
+    infc->doPlanning(plancmd);
+
+    SOLUTION* imp_soln = new SOLUTION();
+
+    infc->getPlannedResult(imp_soln);
+
+    double EPS = 1e-8;
+    for(int i(0); i<solution->path.size() ; ++i)    
+        EXPECT_NEAR((solution->path[i]-imp_soln->path[i]).norm(), 0., EPS);
+    // for(int i(0); i<solution->velocity.size() ; ++i)    
+    //     EXPECT_NEAR((solution->velocity[i]-imp_soln->velocity[i]).norm(), 0., EPS);
+    // for(int i(0); i<solution->acceleration.size() ; ++i)    
+    //     EXPECT_NEAR((solution->acceleration[i]-imp_soln->acceleration[i]).norm(), 0., EPS);
+    // for(int i(0); i<solution->jerk.size() ; ++i)    
+    //     EXPECT_NEAR((solution->jerk[i]-imp_soln->jerk[i]).norm(), 0., EPS);
+
+    infc->getPlannedTrajectory(0.05, traj_data);
+
+    // print results
+    // for (int i(0); i<traj_data->tdata.size(); ++i){
+    //     std::cout<< traj_data->tdata[i] <<  "," 
+    //     << traj_data->qdata[i].transpose() << "," 
+    //     << traj_data->dqdata[i].transpose() << std::endl;
+    // }
+    std::cout<<" path (soln), (impl)"<<std::endl;
+    for(int i(0); i<solution->path.size() ; ++i) {
+        std::cout << std::right << std::setprecision(4) << std::setw(4) << i << ": ";
+        std::cout << std::right << std::setw(10) << solution->path[i].transpose() << " / ";
+        std::cout << std::right << std::setw(10) << imp_soln->path[i].transpose() << std::endl;
+    }
 }

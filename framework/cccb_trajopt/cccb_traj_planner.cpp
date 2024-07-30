@@ -114,6 +114,11 @@ void CCCBTrajOptPlanner::setJerkLimit(const Eigen::VectorXd &jm){
     jerk_limit_ = jm; 
 }
 
+void CCCBTrajOptPlanner::setAlpha(double alpha)
+{
+    trajopt_solver_->alpha_ = alpha;
+}
+
 void CCCBTrajOptPlanner::getPlannedResult(SOLUTION * soln)
 {
     trajopt_solver_-> getKnotValues(soln);

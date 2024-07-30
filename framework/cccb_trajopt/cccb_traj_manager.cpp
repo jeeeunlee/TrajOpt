@@ -1,5 +1,3 @@
-// functions on cccb splines
-
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
 #include "rossy_utils/math/cccb_spline.hpp"
 #include "rossy_utils/math/math_utilities.hpp"
@@ -8,6 +6,7 @@
 
 #define MIN_NUM_WPTS 5
 
+// CCCB-spline related functions
 CCCBTrajManager::CCCBTrajManager(){
     rossy_utils::pretty_constructor(1, "TrajectoryManager");
     // spline_t2q_.initialize()

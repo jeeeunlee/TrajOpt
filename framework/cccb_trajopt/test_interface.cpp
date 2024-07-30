@@ -14,6 +14,7 @@
 #include "framework/cccb_trajopt/simple_controller.hpp"
 #include "framework/cccb_trajopt/cccb_traj_planner.hpp"
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
+#include "test_interface.hpp"
 
 
 
@@ -89,6 +90,11 @@ void TestInterface::updateJerkLimit(const Eigen::VectorXd &jm){
     ((CCCBTrajOptPlanner*)planner_)->setJerkLimit(jm);
 }
 
+
+void TestInterface::updateAlpha(double alpha)
+{
+    ((CCCBTrajOptPlanner*)planner_)->setAlpha(alpha);
+}
 
 void TestInterface::getPlannedTrajectory(const double& time_step,
                                         TRAJ_DATA* traj_data){ 
