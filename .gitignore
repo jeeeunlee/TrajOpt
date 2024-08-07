@@ -11,3 +11,4 @@ MODULE.bazel*
 # dexterity IP
 simulator/configs/urdf_files/dex/*
 simulator/point_cloud_data_generator/graphics*
+experiment_results/*
