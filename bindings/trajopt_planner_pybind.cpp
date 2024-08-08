@@ -35,12 +35,18 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def_readwrite("period", &TRAJ_DATA::period);
 
   py::class_<PLANNING_COMMAND>(m, "PLANNING_COMMAND")
-        .def(py::init<>())
-        .def_readwrite("joint_path", &PLANNING_COMMAND::joint_path)
-        .def_readwrite("cartesian_path", &PLANNING_COMMAND::cartesian_path)
-        .def_readwrite("max_joint_jerk", &PLANNING_COMMAND::max_joint_jerk)
-        .def_readwrite("max_joint_acceleration", &PLANNING_COMMAND::max_joint_acceleration)
-        .def_readwrite("max_joint_speed", &PLANNING_COMMAND::max_joint_speed);
+      .def(py::init<>())
+      .def_readwrite("joint_path", &PLANNING_COMMAND::joint_path)
+      .def_readwrite("cartesian_path", &PLANNING_COMMAND::cartesian_path)
+      .def_readwrite("max_joint_jerk", &PLANNING_COMMAND::max_joint_jerk)
+      .def_readwrite("max_joint_acceleration", &PLANNING_COMMAND::max_joint_acceleration)
+      .def_readwrite("max_joint_speed", &PLANNING_COMMAND::max_joint_speed)
+      .def_readwrite("obstacles", &PLANNING_COMMAND::obstacles);
+
+  py::class_<OBSTACLE>(m, "OBSTACLE")
+      .def(py::init<>())
+      .def_readwrite("pose", &OBSTACLE::pose)
+      .def_readwrite("dimension", &OBSTACLE::dimension);
 
   py::class_<SOLUTION>(m, "SOLUTION")
       .def(py::init<>())

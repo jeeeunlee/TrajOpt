@@ -25,11 +25,28 @@ class TRAJ_DATA{
     double period;
 };
 
+class OBSTACLE{
+  public:
+    OBSTACLE(){
+      // only box obstacles for now
+      // pos(3) + quat(4)
+      pose = Eigen::VectorXd::Zero(7);
+      pose << 0., 0., 0., 1., 0., 0., 0.; 
+      dimension = Eigen::VectorXd::Zero(3);
+      type = 0;
+    }
+  public:
+    Eigen::VectorXd pose;
+    Eigen::VectorXd dimension;
+    int type; // 0: box
+};
+
 class PLANNING_COMMAND{
 public:
     PLANNING_COMMAND(){      
       joint_path.clear();
       cartesian_path.clear();
+      obstacles.clear();
 
       // should be set
       max_joint_speed={};
@@ -43,8 +60,10 @@ public:
     
     Eigen::VectorXd max_joint_acceleration;
     Eigen::VectorXd max_joint_speed;
-    Eigen::VectorXd max_joint_jerk;    
+    Eigen::VectorXd max_joint_jerk;
+    std::vector< OBSTACLE > obstacles;
 };
+
 
 
 class SOLUTION{

@@ -17,9 +17,9 @@ CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem* _robot,
 
     cccb_traj_ = _cccb_traj;
     n_dof_ = robot_->getNumDofs();
-    robot_temp_ = new RobotSystem(*robot_);    
+    robot_temp_ = new RobotSystem(*robot_); // robot instance for computation
     trajopt_solver_ = new CCCBTrajOptSolver();
-    obstacles_ = new ObstacleManager();
+    obstacles_ = new ObstacleManager(robot_temp_);
 
     // set default jerk limit value as 1000
     vel_limit_ = robot_temp_->GetVelocityUpperLimits();

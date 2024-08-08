@@ -14,6 +14,8 @@ CCCBTrajOptSolver::CCCBTrajOptSolver()
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd, 
         ObstacleManager* obstacles, 
         CCCBTrajManager* cccb_traj){
+    /* 0. initialize obstacles */
+    obstacles->setObstacles(planning_cmd->obstacles);
 
     /* 1. initialize traj */
     // get initial CPs to track given path and h0 that satisfies constraints
