@@ -7,6 +7,7 @@
 #include <pybind11/stl.h>
 
 #include "framework/cccb_trajopt/test_interface.hpp"
+#include "framework/cccb_trajopt/test_interface_nocol.hpp"
 #include "framework/user_command.hpp"
 
 class PyInterface : public EnvInterface {
@@ -74,13 +75,22 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def("updateState", &EnvInterface::updateState);      
 
   py::class_<TestInterface, EnvInterface>(m, "TestInterface")
-      .def(py::init<std::string>())
+      .def(py::init<std::string, std::string>())
       .def("getPlannedTrajectory", &TestInterface::getPlannedTrajectory)
       .def("getPlannedResult", &TestInterface::getPlannedResult)
       .def("updateVelLimit", &TestInterface::updateVelLimit)
       .def("updateAccLimit", &TestInterface::updateAccLimit)
       .def("updateJerkLimit", &TestInterface::updateJerkLimit)
       .def("updateAlpha", &TestInterface::updateAlpha);
+
+  py::class_<NoColTestInterface, EnvInterface>(m, "NoColTestInterface")
+      .def(py::init<std::string>())
+      .def("getPlannedTrajectory", &NoColTestInterface::getPlannedTrajectory)
+      .def("getPlannedResult", &NoColTestInterface::getPlannedResult)
+      .def("updateVelLimit", &NoColTestInterface::updateVelLimit)
+      .def("updateAccLimit", &NoColTestInterface::updateAccLimit)
+      .def("updateJerkLimit", &NoColTestInterface::updateJerkLimit)
+      .def("updateAlpha", &NoColTestInterface::updateAlpha);
 
   py::class_<SensorData>(m, "SensorData")
       .def(py::init<int>())

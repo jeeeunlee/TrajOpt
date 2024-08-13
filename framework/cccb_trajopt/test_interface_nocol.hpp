@@ -10,7 +10,7 @@ class Clock;
 class CCCBTrajManager;
 class ObstacleManager;
 
-class TestInterface : public EnvInterface {
+class NoColTestInterface : public EnvInterface {
    protected:
       double running_time_;
 
@@ -23,8 +23,8 @@ class TestInterface : public EnvInterface {
 
       Planner* planner_;
       Controller* controller_;
-      CCCBTrajManager* cccb_traj_;  
-      ObstacleManager* obstacle_manager_;
+      CCCBTrajManager* cccb_traj_;
+      ObstacleManager* obstacle_manager_;      
       
       Clock* clock_;     
 
@@ -34,9 +34,8 @@ class TestInterface : public EnvInterface {
       Eigen::VectorXd cmd_jtrq_;
 
    public:
-      TestInterface(const std::string_view robot_name, 
-                  const std::string_view assets_directory);
-      ~TestInterface();
+      NoColTestInterface(const std::string_view urdf_path);
+      ~NoColTestInterface();
       
       virtual void getCommand(SensorData* _sensor_data, RobotCommand* _command_data);
       virtual bool doPlanning(void* user_cmd);

@@ -10,11 +10,10 @@ class Clock;
 
 class CCCBTrajOptSolver{
     public:
-        CCCBTrajOptSolver();
+        CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj, 
+                        ObstacleManager* _obstacle_manager);
         ~CCCBTrajOptSolver(){ }
-        bool solve(PLANNING_COMMAND* planning_cmd, 
-                ObstacleManager* obstacles, 
-                CCCBTrajManager* cccb_traj_);
+        bool solve(PLANNING_COMMAND* planning_cmd);
         double getMinH(const Eigen::VectorXd &CPvec,
                         PLANNING_COMMAND* planning_cmd);
         void updateConstraints(const Eigen::VectorXd &Xbar,
@@ -24,7 +23,6 @@ class CCCBTrajOptSolver{
                                 Eigen::VectorXd &b);
         void addColConstraints(const Eigen::VectorXd &Xbar,
                                 double hbar,
-                                ObstacleManager* obstacles,
                                 Eigen::MatrixXd &Ac,
                                 Eigen::VectorXd &ah,
                                 Eigen::VectorXd &b);
@@ -40,6 +38,10 @@ class CCCBTrajOptSolver{
         double alpha_;
 
     private:
+        // instances
+        CCCBTrajManager* cccb_traj_; 
+        ObstacleManager* obstacle_manager_;
+
         // solution
         Eigen::MatrixXd CPVec_;
         double h_;

@@ -1,27 +1,26 @@
 #include "framework/cccb_trajopt/cccb_trajopt_solver.hpp"
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
-#include "framework/cccb_trajopt/obstacle_manager.hpp"
+#include "framework/cccb_trajopt/no_obstacle_manager.hpp"
+#include "framework/cccb_trajopt/rtcl_obstacle_manager.hpp"
 #include "rossy_utils/solvers/lp_solver.hpp"
 #include "rossy_utils/solvers/qp_solver.hpp"
 #include "rossy_utils/math/math_utilities.hpp"
 #include "cccb_trajopt_solver.hpp"
 
-CCCBTrajOptSolver::CCCBTrajOptSolver()
-{
+CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj, 
+                                    ObstacleManager* _obstacle_manager)
+    : cccb_traj_(_cccb_traj), obstacle_manager_(_obstacle_manager){
     alpha_ = -1.;
 }
 
-bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd, 
-        ObstacleManager* obstacles, 
-        CCCBTrajManager* cccb_traj){
-    /* 0. initialize obstacles */
-    obstacles->setObstacles(planning_cmd->obstacles);
+bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
 
+    std::cout<<" CCCBTrajOptSolver::solve " <<std::endl;
     /* 1. initialize traj */
     // get initial CPs to track given path and h0 that satisfies constraints
-    updateCoeffs(planning_cmd, cccb_traj);
+    updateCoeffs(planning_cmd, cccb_traj_);
     Eigen::MatrixXd CPvars0 = 
-        cccb_traj->findBSpline(planning_cmd->joint_path);    
+        cccb_traj_->findBSpline(planning_cmd->joint_path);    
 
     // CPvars = [cp[0], cp[1],...,] : dim x (N-3) matrix
     // CPvec = [cp[0]; cp[1];...] : dim*(N-3) x 1 vector
@@ -54,8 +53,10 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd,
     while(n_iter++ < max_iter){
      
         // update constraints: Ac*delCP + ah*delh <= b
+        std::cout << "I'm here 1 " << std::endl;
         updateConstraints(CPbar, hbar, Ac, ah, b);
-        // addColConstraints(CPbar, hbar, obstacles, Ac, ah, b);
+        std::cout << "I'm here 2 " << std::endl;
+        addColConstraints(CPbar, hbar, Ac, ah, b);
 
         // set constraints
         A = Eigen::MatrixXd::Zero(ah.size(), CPdim+1);
@@ -103,8 +104,8 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd,
     std::vector<Eigen::VectorXd> CPvars;
     for(int i(0); i<CPvec.size()/dim_; ++i)
         CPvars.push_back(CPbar.segment(i*dim_, dim_));
-    cccb_traj->setBSpline(pi_,pf_,CPvars);
-    cccb_traj->setTimeDuration(hbar);
+    cccb_traj_->setBSpline(pi_,pf_,CPvars);
+    cccb_traj_->setTimeDuration(hbar);
     
     // checkSplinePrint();
     // TODO : check soln exist later
@@ -211,9 +212,8 @@ void CCCBTrajOptSolver::updateConstraints(const Eigen::VectorXd &CPbar,
 
 }
 
-void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &Xbar,
+void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
                                         double hbar,
-                                        ObstacleManager* obstacles,
                                         Eigen::MatrixXd &Ac,
                                         Eigen::VectorXd &ah,
                                         Eigen::VectorXd &b){
@@ -221,10 +221,22 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &Xbar,
     Eigen::MatrixXd Actmp;
     Eigen::VectorXd ahtmp, btmp, btmp1, btmp2;
 
+    int CPdim = CPbar.size();
+
+    // knot points
+    std::vector<Eigen::VectorXd> joint_configs;
+    Eigen::VectorXd pVec = Ap_*CPbar + bp_;
+    for(int i(0); i<pVec.size()/dim_; ++i){
+        std::cout << " knot q =" << pVec.segment(i*dim_,dim_).transpose() << std::endl;
+        joint_configs.push_back(pVec.segment(i*dim_,dim_)) ;
+    }      
+
     // compute collision constraints
     Eigen::MatrixXd U = Eigen::MatrixXd::Zero(0,0);
     Eigen::VectorXd d = Eigen::VectorXd::Zero(0);
-    obstacles->updateObstacleCoeff(U,d);
+    obstacle_manager_->updateObstacleCoeff(joint_configs, U, d);
+
+    // 
     int NObs = U.rows();
 
     if(NObs>0){
@@ -288,8 +300,8 @@ void CCCBTrajOptSolver::updateCoeffs(PLANNING_COMMAND* planning_cmd,
 
     std::cout << "updateCoeffs : ";
     std::cout << "N_ = " << N_ << ", ";
-    std::cout << "dim_ = " << dim_ << ", ";
-    std::cout << "pi_ = " << pi_.transpose() << ", ";
+    std::cout << "dim_ = " << dim_ << std::endl;
+    std::cout << "pi_ = " << pi_.transpose() << std::endl;
     std::cout << "pf_ = " << pf_.transpose() << std::endl;
                             
     Ap_ = cccb_traj->computeAp(N_,dim_);
@@ -332,7 +344,7 @@ double CCCBTrajOptSolver::getMinH(const Eigen::VectorXd &CPvec,
     double h = std::max(hv1, std::sqrt(ha2));
     h = std::max(h, std::pow(hj3,1./3.));
 
-    std::cout<<" I'm here 3: h = " << h << ", hv=" << 
+    std::cout<<" CCCBTrajOptSolver::getMinH:  h = " << h << ", hv=" << 
     hv1 << ", ha=" << std::sqrt(ha2) << ", hj=" << std::pow(hj3,1./3.) << std::endl;
     return h;
 }

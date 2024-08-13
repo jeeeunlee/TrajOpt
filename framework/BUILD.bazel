@@ -10,6 +10,8 @@ cc_library(
         "@pinocchio",
         "//rossy_utils:rossy_utils",
         "//rossy_utils:robot_system",
+        # "//rtcl/rtcl:rtcl_wrapper",
+        "//rtcl:rtcl_h"
     ],
 )
 

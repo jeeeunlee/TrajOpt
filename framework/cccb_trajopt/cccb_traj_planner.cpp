@@ -5,39 +5,42 @@
 #include "framework/cccb_trajopt/cccb_traj_planner.hpp"
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
 #include "framework/cccb_trajopt/cccb_trajopt_solver.hpp"
-#include "framework/cccb_trajopt/obstacle_manager.hpp"
+#include "framework/cccb_trajopt/no_obstacle_manager.hpp"
+#include "framework/cccb_trajopt/rtcl_obstacle_manager.hpp"
 #include "cccb_traj_planner.hpp"
 
 
 // CCCB-spline based Trajectory optimization planner
 CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem* _robot, 
-    CCCBTrajManager* _cccb_traj, int _link_idx) 
+    CCCBTrajManager* _cccb_traj, 
+    ObstacleManager* _obstacle_manager, 
+    int _link_idx) 
     :Planner(_robot), link_idx_(_link_idx), threshold_pinv_(0.2) {
     rossy_utils::pretty_constructor(1, "CCCBspline Trajectory Optimization Planner");
 
     cccb_traj_ = _cccb_traj;
+    obstacle_manager_ = _obstacle_manager;
+
     n_dof_ = robot_->getNumDofs();
-    robot_temp_ = new RobotSystem(*robot_); // robot instance for computation
-    trajopt_solver_ = new CCCBTrajOptSolver();
-    obstacles_ = new ObstacleManager(robot_temp_);
+    trajopt_solver_ = new CCCBTrajOptSolver(cccb_traj_, obstacle_manager_);    
 
     // set default jerk limit value as 1000
-    vel_limit_ = robot_temp_->GetVelocityUpperLimits();
+    vel_limit_ = robot_->GetVelocityUpperLimits();
     acc_limit_ = Eigen::VectorXd::Constant(n_dof_, 6.);     
     jerk_limit_ = Eigen::VectorXd::Constant(n_dof_, 1000.); 
 }
 
-CCCBTrajOptPlanner::~CCCBTrajOptPlanner() {
-    delete robot_temp_;
-}
+CCCBTrajOptPlanner::~CCCBTrajOptPlanner() { }
 
 bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {  
     // user_cmd: WPT_DATA()
+    std::cout<<" CCCBTrajOptPlanner::doPlanning " <<std::endl;
     if(b_planned_== false){
         b_planned_ = true;
-        b_planned_firstvisit_=false;        
-        bool soln_exist = trajopt_solver_->solve(
-            planning_cmd, obstacles_, cccb_traj_);
+        b_planned_firstvisit_=false;   
+        obstacle_manager_->setObstacles(planning_cmd->obstacles);
+        // this will save the trajectory in cccb_traj_
+        bool soln_exist = trajopt_solver_->solve(planning_cmd);        
         
         if(soln_exist){
             start_time_ = current_time_;

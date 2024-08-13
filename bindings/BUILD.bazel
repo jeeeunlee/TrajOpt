@@ -6,7 +6,9 @@ pybind_extension(
     srcs = ["trajopt_planner_pybind.cpp"],
     visibility = ["//visibility:public"],
     deps = [
-        "//framework:cccb_trajopt", 
+        "//framework:cccb_trajopt",
+        # "//rtcl/rtcl:rtcl_wrapper",
+        # "//rtcl:rtcl_h"
     ],
     # linkopts = ["-lpython3.11"],
 )

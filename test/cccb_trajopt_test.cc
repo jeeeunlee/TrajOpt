@@ -1,16 +1,8 @@
 #include <gtest/gtest.h>
 
-// #include "rossy_utils/math/cccb_spline.hpp"
-// #include "rossy_utils/io/io_utilities.hpp"
-// #include "framework/cccb_trajopt/cccb_traj_planner.hpp"
-
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include "rossy_utils/io/json.hpp"
-#include "framework/cccb_trajopt/test_interface.hpp"
+#include "framework/cccb_trajopt/test_interface_nocol.hpp"
 #include "framework/user_command.hpp"
+#include "test/json_utils.h"
 
 void generate_rand_problem(PLANNING_COMMAND* plancmd){
     plancmd->joint_path.clear();
@@ -29,33 +21,6 @@ void generate_rand_problem(PLANNING_COMMAND* plancmd){
     plancmd->joint_path.push_back(pi);
 
 }
-
-Eigen::VectorXd json_list_to_eigen(const nlohmann::json &j){
-    Eigen::VectorXd vector(j.size());
-    int element_index=0;    
-    for (const auto& element : j) {
-        vector(element_index++) = (double)element;
-    }
-    return vector;
-}
-
-Eigen::MatrixXd json_listoflist_to_eigenmat(const nlohmann::json &j){
-    Eigen::MatrixXd mat(j[0].size(),j.size());
-    size_t element_index=0;
-    for (const auto& element : j) {
-        mat.col(element_index++) = json_list_to_eigen(element);
-    }
-    return mat;
-}
-
-void json_listoflist_to_vecofeigen(const nlohmann::json &j, 
-                    std::vector<Eigen::VectorXd> &vector){
-    Eigen::MatrixXd mat =json_listoflist_to_eigenmat(j);    
-    vector.clear();
-    for(int i(0); i<mat.rows(); ++i)
-        vector.push_back(mat.row(i));
-}
-
 
 void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){   
     std::stringstream filenamess;
@@ -89,7 +54,7 @@ void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){
 
 TEST(CCCBTrajOptTest, CheckNoColCase){
     std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
-    TestInterface* infc = new TestInterface(panda_urdf);
+    NoColTestInterface* infc = new NoColTestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
     SOLUTION* solution = new SOLUTION();
@@ -126,7 +91,7 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
 
 TEST(CCCBTrajOptTest, CheckNoColCaseQP){
     std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
-    TestInterface* infc = new TestInterface(panda_urdf);
+    NoColTestInterface* infc = new NoColTestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
     SOLUTION* solution = new SOLUTION();

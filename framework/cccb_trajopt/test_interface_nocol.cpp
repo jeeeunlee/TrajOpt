@@ -12,15 +12,15 @@
 
 #include "rossy_utils/robot_system/robot_system.hpp"
 
-#include "framework/cccb_trajopt/test_interface.hpp"
+#include "framework/cccb_trajopt/test_interface_nocol.hpp"
 #include "framework/cccb_trajopt/simple_controller.hpp"
 #include "framework/cccb_trajopt/cccb_traj_planner.hpp"
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
-#include "framework/cccb_trajopt/rtcl_obstacle_manager.hpp"
 
-TestInterface::TestInterface(const std::string_view robot_name, 
-const std::string_view assets_directory)
-    :EnvInterface() {    
+#include "framework/cccb_trajopt/no_obstacle_manager.hpp"
+
+NoColTestInterface::NoColTestInterface(const std::string_view urdf_path)
+    :EnvInterface(), robot_urdf_path_{urdf_path} {    
     rossy_utils::color_print(myColor::BoldCyan, rossy_utils::border);
     rossy_utils::pretty_constructor(0, "Test Interface");
 
@@ -28,13 +28,13 @@ const std::string_view assets_directory)
     // setConfiguration("/etc/opt/dex/truck_rwc_dev/dhc/test.yaml");
     // setConfiguration("config/test.yaml");
     // robot_urdf_path_ =  "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
-    robot_urdf_path_ = fmt::format("{}/urdfs/{}.urdf", assets_directory, robot_name);
+    // robot_urdf_path_ = urdf_path;
     link_idx_ = 20; // panda_hand    
     
     // class constructors
     robot_ = new RobotSystem(robot_urdf_path_);    
     cccb_traj_ = new CCCBTrajManager();
-    obstacle_manager_ = new RtclObstacleManager(robot_name, assets_directory);
+    obstacle_manager_ = new NoObstacleManager();
     planner_ = new CCCBTrajOptPlanner(robot_, cccb_traj_, obstacle_manager_, link_idx_);
     controller_ = new SimpleController( robot_, planner_);
     clock_ = new Clock();    
@@ -48,30 +48,30 @@ const std::string_view assets_directory)
     rossy_utils::color_print(myColor::BoldCyan, rossy_utils::border);
 }
 
-TestInterface::~TestInterface() {
+NoColTestInterface::~NoColTestInterface() {
     delete robot_;
     delete planner_;
     delete controller_;
     delete clock_;
 }
 
-void TestInterface::getCommand(SensorData* _sensor_data, RobotCommand* _command_data) {
+void NoColTestInterface::getCommand(SensorData* _sensor_data, RobotCommand* _command_data) {
     updateRobotSystem(_sensor_data);   
     controller_->getCommand(_command_data);
 }
 
-void TestInterface::updateState(SensorData* _sensor_data){
+void NoColTestInterface::updateState(SensorData* _sensor_data){
     updateRobotSystem(_sensor_data);
 }
 
-void TestInterface::updateRobotSystem(SensorData* data){
+void NoColTestInterface::updateRobotSystem(SensorData* data){
     robot_->updateSystem(data->q, data->qdot);
     running_time_ = data->elapsedtime;
     ((CCCBTrajOptPlanner*)planner_)->updateTime(running_time_);
 }
 
 
-bool TestInterface::doPlanning(void* user_cmd){
+bool NoColTestInterface::doPlanning(void* user_cmd){
     std::cout<<"doPlanning start"<<std::endl;    
     clock_->start();
     plan_cmd_ = (PLANNING_COMMAND*)user_cmd;
@@ -80,25 +80,25 @@ bool TestInterface::doPlanning(void* user_cmd){
     return planned;
 }
 
-void TestInterface::updateVelLimit(const Eigen::VectorXd &vm){
+void NoColTestInterface::updateVelLimit(const Eigen::VectorXd &vm){
     ((CCCBTrajOptPlanner*)planner_)->setVelLimit(vm);
 }
 
-void TestInterface::updateAccLimit(const Eigen::VectorXd &am){
+void NoColTestInterface::updateAccLimit(const Eigen::VectorXd &am){
     ((CCCBTrajOptPlanner*)planner_)->setAccLimit(am);
 }
 
-void TestInterface::updateJerkLimit(const Eigen::VectorXd &jm){
+void NoColTestInterface::updateJerkLimit(const Eigen::VectorXd &jm){
     ((CCCBTrajOptPlanner*)planner_)->setJerkLimit(jm);
 }
 
 
-void TestInterface::updateAlpha(double alpha)
+void NoColTestInterface::updateAlpha(double alpha)
 {
     ((CCCBTrajOptPlanner*)planner_)->setAlpha(alpha);
 }
 
-void TestInterface::getPlannedTrajectory(const double& time_step,
+void NoColTestInterface::getPlannedTrajectory(const double& time_step,
                                         TRAJ_DATA* traj_data){ 
     std::cout << "getPlannedTrajectory " << std::endl;;
     // generate desired q, qdot
@@ -131,13 +131,13 @@ void TestInterface::getPlannedTrajectory(const double& time_step,
     planner_->reset(); // bplanned = true
 }
 
-void TestInterface::getPlannedResult(SOLUTION * soln){
+void NoColTestInterface::getPlannedResult(SOLUTION * soln){
     ((CCCBTrajOptPlanner*)planner_)->getPlannedResult(soln);
 }
 
 // SensorData : q, qdot
 // RobotCommand : q, qdot, qddot, jtrq
-void TestInterface::saveData(SensorData* _sensor_data, RobotCommand* _command_data){    
+void NoColTestInterface::saveData(SensorData* _sensor_data, RobotCommand* _command_data){    
 
     rossy_utils::saveValue(running_time_, "test_t");
 

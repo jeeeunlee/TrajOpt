@@ -35,6 +35,10 @@ class OBSTACLE{
       dimension = Eigen::VectorXd::Zero(3);
       type = 0;
     }
+    void printInfo(){
+      std::cout << " pose = " << pose.transpose() << std::endl;
+      std::cout << " dimension = " << dimension.transpose() << std::endl;
+    }
   public:
     Eigen::VectorXd pose;
     Eigen::VectorXd dimension;

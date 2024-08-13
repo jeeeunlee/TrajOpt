@@ -1,5 +1,12 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
+cc_library(
+    name = "json_utils",
+    hdrs = ["json_utils.h"],
+    deps = [
+        "//rossy_utils:rossy_utils",
+    ]
+)
 
 cc_test(
     name = "lp_solver_test",
@@ -13,12 +20,26 @@ cc_test(
     name = "cccb_trajopt_test",
     srcs = ["cccb_trajopt_test.cc"],
     deps = [
+        "json_utils",
         "//rossy_utils:rossy_utils",
         "//rossy_utils:robot_system",
         "//framework:cccb_trajopt",
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "cccb_trajopt_with_rtcl_test",
+    srcs = ["cccb_trajopt_with_rtcl_test.cc"],
+    deps = [
+        "json_utils",
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",
+        "//framework:cccb_trajopt",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 
 cc_test(
     name = "cccb_spline_test",

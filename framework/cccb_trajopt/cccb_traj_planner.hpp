@@ -19,15 +19,17 @@ class CCCBTrajOptPlanner: public Planner{
     Eigen::VectorXd acc_limit_;
     Eigen::VectorXd jerk_limit_;
 
-    RobotSystem* robot_temp_;
     CCCBTrajManager* cccb_traj_;
     CCCBTrajOptSolver* trajopt_solver_;
-    ObstacleManager* obstacles_;
+    ObstacleManager* obstacle_manager_;
 
     double threshold_pinv_;
     
   public:
-    CCCBTrajOptPlanner(RobotSystem* _robot, CCCBTrajManager* _cccb_traj, int _link_idx);
+    CCCBTrajOptPlanner(RobotSystem* _robot, 
+                      CCCBTrajManager* _cccb_traj, 
+                      ObstacleManager* _obstacle_manager, 
+                      int _link_idx);
     ~CCCBTrajOptPlanner();
 
     bool doPlanning(PLANNING_COMMAND* planning_cmd);
