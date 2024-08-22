@@ -7,8 +7,7 @@ pybind_extension(
     visibility = ["//visibility:public"],
     deps = [
         "//framework:cccb_trajopt",
-        # "//rtcl/rtcl:rtcl_wrapper",
-        # "//rtcl:rtcl_h"
+        "//rtcl:rtcl_h"
     ],
     # linkopts = ["-lpython3.11"],
 )

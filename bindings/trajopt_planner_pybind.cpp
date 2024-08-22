@@ -42,12 +42,19 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def_readwrite("max_joint_jerk", &PLANNING_COMMAND::max_joint_jerk)
       .def_readwrite("max_joint_acceleration", &PLANNING_COMMAND::max_joint_acceleration)
       .def_readwrite("max_joint_speed", &PLANNING_COMMAND::max_joint_speed)
+      .def_readwrite("gripped_box", &PLANNING_COMMAND::gripped_box)
       .def_readwrite("obstacles", &PLANNING_COMMAND::obstacles);
 
   py::class_<OBSTACLE>(m, "OBSTACLE")
       .def(py::init<>())
+      .def_readwrite("name", &OBSTACLE::name)
       .def_readwrite("pose", &OBSTACLE::pose)
       .def_readwrite("dimension", &OBSTACLE::dimension);
+
+  py::class_<GRIPPED_BOX>(m, "GRIPPED_BOX")
+      .def(py::init<>())
+      .def_readwrite("pose_from_ee", &GRIPPED_BOX::pose_from_ee)
+      .def_readwrite("dimension", &GRIPPED_BOX::dimension);  
 
   py::class_<SOLUTION>(m, "SOLUTION")
       .def(py::init<>())

@@ -9,7 +9,7 @@ import numpy as np
 class TrajoptPlanner(RobotInterface):
     def __init__(self, Config):
         self.Config = Config
-        self.interface = trajopt_planner.TestInterface(Config.ROBOT_FILE_NAME)
+        self.interface = trajopt_planner.NoColTestInterface(Config.ROBOT_FILE_NAME)
         self.sensor_data = trajopt_planner.SensorData(Config.ROBOTDOF)
         self.command = trajopt_planner.RobotCommand(Config.ROBOTDOF)
         self.planning_cmd = trajopt_planner.PLANNING_COMMAND()

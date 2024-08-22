@@ -38,6 +38,7 @@ bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {
     if(b_planned_== false){
         b_planned_ = true;
         b_planned_firstvisit_=false;   
+        obstacle_manager_->setGrippedBox(planning_cmd->gripped_box);
         obstacle_manager_->setObstacles(planning_cmd->obstacles);
         // this will save the trajectory in cccb_traj_
         bool soln_exist = trajopt_solver_->solve(planning_cmd);        

@@ -34,15 +34,35 @@ class OBSTACLE{
       pose << 0., 0., 0., 1., 0., 0., 0.; 
       dimension = Eigen::VectorXd::Zero(3);
       type = 0;
+      name = "";
     }
-    void printInfo(){
-      std::cout << " pose = " << pose.transpose() << std::endl;
-      std::cout << " dimension = " << dimension.transpose() << std::endl;
+    void printInfo() const{
+      std::cout << " pose = " << this->pose.transpose() << std::endl;
+      std::cout << " dimension = " << this->dimension.transpose() << std::endl;
     }
   public:
     Eigen::VectorXd pose;
     Eigen::VectorXd dimension;
     int type; // 0: box
+    std::string name;
+};
+
+class GRIPPED_BOX{
+    public:
+    GRIPPED_BOX(){
+      // pos(3) + quat(4)
+      pose_from_ee = Eigen::VectorXd::Zero(7);
+      pose_from_ee << 0., 0., 0., 1., 0., 0., 0.; 
+      dimension = Eigen::VectorXd::Zero(3);
+    }
+    void printInfo() const{
+      std::cout << " gripped box information :" << std::endl;
+      std::cout << "\t- pose_from_ee = " << this->pose_from_ee.transpose() << std::endl;
+      std::cout << "\t- dimension = " << this->dimension.transpose() << std::endl;
+    }
+  public:
+    Eigen::VectorXd pose_from_ee;
+    Eigen::VectorXd dimension;
 };
 
 class PLANNING_COMMAND{
@@ -56,6 +76,7 @@ public:
       max_joint_speed={};
       max_joint_acceleration={};
       max_joint_jerk={};
+      gripped_box=GRIPPED_BOX();
       }
     ~PLANNING_COMMAND(){}
   public:
@@ -66,6 +87,7 @@ public:
     Eigen::VectorXd max_joint_speed;
     Eigen::VectorXd max_joint_jerk;
     std::vector< OBSTACLE > obstacles;
+    GRIPPED_BOX gripped_box;
 };
 
 

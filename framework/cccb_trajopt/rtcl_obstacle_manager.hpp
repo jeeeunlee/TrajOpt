@@ -5,6 +5,7 @@
 
 namespace rtcl{
     class RtclInterface;
+
 }
 
 class RtclObstacleManager : public ObstacleManager {
@@ -16,6 +17,11 @@ class RtclObstacleManager : public ObstacleManager {
         // virtual void setObstacles(const std::vector<OBSTACLE>& obstacles);
         virtual void updateObstacleCoeff(const std::vector<Eigen::VectorXd> &joint_configs,
                                 Eigen::MatrixXd &U, Eigen::VectorXd &d);
+
+        void updateSingleJointCoeff(uint num_constraints,
+                                    uint dim,
+                                    Eigen::MatrixXf& Ut, 
+                                    Eigen::VectorXf& dt);
 
     protected:        
         rtcl::RtclInterface* rtcl_interface_;

@@ -49,13 +49,11 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     Eigen::VectorXd CPbar = CPvec0;
     double hbar = h0;
     
-    int n_iter(0), max_iter(1);
+    int n_iter(0), max_iter(5);
     while(n_iter++ < max_iter){
      
         // update constraints: Ac*delCP + ah*delh <= b
-        std::cout << "I'm here 1 " << std::endl;
         updateConstraints(CPbar, hbar, Ac, ah, b);
-        std::cout << "I'm here 2 " << std::endl;
         addColConstraints(CPbar, hbar, Ac, ah, b);
 
         // set constraints
@@ -227,16 +225,17 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
     std::vector<Eigen::VectorXd> joint_configs;
     Eigen::VectorXd pVec = Ap_*CPbar + bp_;
     for(int i(0); i<pVec.size()/dim_; ++i){
-        std::cout << " knot q =" << pVec.segment(i*dim_,dim_).transpose() << std::endl;
+        // std::cout << " knot q =" << pVec.segment(i*dim_,dim_).transpose() << std::endl;
         joint_configs.push_back(pVec.segment(i*dim_,dim_)) ;
     }      
 
-    // compute collision constraints
+    // compute collision constraints U*Δq < d
     Eigen::MatrixXd U = Eigen::MatrixXd::Zero(0,0);
     Eigen::VectorXd d = Eigen::VectorXd::Zero(0);
     obstacle_manager_->updateObstacleCoeff(joint_configs, U, d);
 
     // 
+    std::cout<<" obstacle constraint dimension: " << d.size() << std::endl;
     int NObs = U.rows();
 
     if(NObs>0){

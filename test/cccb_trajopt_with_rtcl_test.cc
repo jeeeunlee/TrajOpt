@@ -41,9 +41,7 @@ void read_case(PLANNING_COMMAND* plancmd, const std::string_view robotname, int 
     json_listoflist_to_vecofeigen(problem["joint_path"], plancmd->joint_path, false);
 }
 
-
-
-TEST(CCCBTrajOptTest, CheckColCase){
+TEST(CCCBTrajOptTest, AddGrippedBox){
     std::string assets_dir = "/home/jelee/my_ws/TrajOpt/rtcl/assets";
     std::string robot_name = "ra830a";
     TestInterface* infc = new TestInterface(robot_name, assets_dir);
@@ -54,9 +52,12 @@ TEST(CCCBTrajOptTest, CheckColCase){
 
     // generate_rand_problem(plancmd);    
     read_case(plancmd,robot_name,1);
-    std::cout<<" infc->updateAlpha(10); " << std::endl;
+    plancmd->gripped_box.pose_from_ee << 0.0, 0.0, 0.2032, 1.0, 0.0, 0.0, 0.0;
+    plancmd->gripped_box.dimension << 0.4064, 0.4064, 0.4064;
+    std::cout << "setting gripped box info"<< std::endl;
+    std::cout << plancmd->gripped_box.pose_from_ee.transpose() << std::endl;
+    std::cout << plancmd->gripped_box.dimension.transpose() << std::endl;
     infc->updateAlpha(10);
-    std::cout<<" infc->doPlanning(plancmd); " << std::endl;
     infc->doPlanning(plancmd);
 
     SOLUTION* imp_soln = new SOLUTION();
@@ -72,3 +73,31 @@ TEST(CCCBTrajOptTest, CheckColCase){
     //     << traj_data->dqdata[i].transpose() << std::endl;
     // }
 }
+
+// TEST(CCCBTrajOptTest, NoGrippedBox){
+//     std::string assets_dir = "/home/jelee/my_ws/TrajOpt/rtcl/assets";
+//     std::string robot_name = "ra830a";
+//     TestInterface* infc = new TestInterface(robot_name, assets_dir);
+
+//     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
+//     SOLUTION* solution = new SOLUTION();
+//     TRAJ_DATA* traj_data = new TRAJ_DATA();
+
+//     // generate_rand_problem(plancmd);    
+//     read_case(plancmd,robot_name,1);
+//     infc->updateAlpha(10);
+//     infc->doPlanning(plancmd);
+
+//     SOLUTION* imp_soln = new SOLUTION();
+
+//     infc->getPlannedResult(imp_soln);
+//     double tstep = 0.05;
+//     infc->getPlannedTrajectory(tstep, traj_data);
+
+//     // print results
+//     // for (int i(0); i<traj_data->tdata.size(); ++i){
+//     //     std::cout<< traj_data->tdata[i] <<  "," 
+//     //     << traj_data->qdata[i].transpose() << "," 
+//     //     << traj_data->dqdata[i].transpose() << std::endl;
+//     // }
+// }
