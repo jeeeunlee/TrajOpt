@@ -37,12 +37,10 @@ void CCCBTrajManager::getCommand(double t,
     qddot_cmd = spline_t2q_->evaluateSecondDerivative(t);
 }
 
-
 double CCCBTrajManager::getMotionPeriod()
 {
     return spline_t2q_->getMotionPeriod();
 }
-
 
 // Based on Clamped Cardinal Cubic B-spline properties:
 void CCCBTrajManager::setBSpline(const Eigen::VectorXd &pi, 
@@ -51,6 +49,7 @@ void CCCBTrajManager::setBSpline(const Eigen::VectorXd &pi,
     // set spline_t2q_
     spline_t2q_->setControlPoints(pi,pf,cp_in);
 }
+
 void CCCBTrajManager::setTimeDuration(const double & h_in){
     spline_t2q_->setTimeDuration(h_in);
 }
@@ -112,7 +111,7 @@ Eigen::VectorXd CCCBTrajManager::computebp(int N, int dim,
 }
 
 Eigen::MatrixXd CCCBTrajManager::computeAv2(int N, int dim){    
-    // Av1d = (N-1)x(N-3) matrix
+    // Av1d = (N-2)x(N-3) matrix
     Eigen::MatrixXd Av1d = Eigen::MatrixXd::Zero(N-2,N-3);
     Av1d.block(0,0,N-3,N-3) += Eigen::MatrixXd::Identity(N-3,N-3);
     Av1d.block(1,0,N-3,N-3) += -Eigen::MatrixXd::Identity(N-3,N-3);    
@@ -123,7 +122,7 @@ Eigen::MatrixXd CCCBTrajManager::computeAv2(int N, int dim){
 Eigen::VectorXd CCCBTrajManager::computebv2(int N, int dim,
         const Eigen::VectorXd &pi, const Eigen::VectorXd &pf){
     assert(pi.size()==dim && pf.size()==dim);
-    // bv = (N-1)*dim x 1
+    // bv = (N-2)*dim x 1
     Eigen::VectorXd bv = Eigen::VectorXd::Zero((N-2)*dim);
     bv.segment(0,dim) = -pi;
     bv.segment((N-3)*dim,dim) = pf;

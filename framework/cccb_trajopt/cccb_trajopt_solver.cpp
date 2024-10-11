@@ -7,6 +7,9 @@
 #include "rossy_utils/math/math_utilities.hpp"
 #include "cccb_trajopt_solver.hpp"
 
+// for benchmark
+#include "rossy_utils/general/clock.hpp"
+
 CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj, 
                                     ObstacleManager* _obstacle_manager)
     : cccb_traj_(_cccb_traj), obstacle_manager_(_obstacle_manager){
@@ -16,9 +19,11 @@ CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj,
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
 
     std::cout<<" CCCBTrajOptSolver::solve " <<std::endl;
+    Clock timer;
+    timer.start();
     /* 1. initialize traj */
     // get initial CPs to track given path and h0 that satisfies constraints
-    updateCoeffs(planning_cmd, cccb_traj_);
+    updateCoeffs(planning_cmd, cccb_traj_);    
     Eigen::MatrixXd CPvars0 = 
         cccb_traj_->findBSpline(planning_cmd->joint_path);    
 
@@ -26,6 +31,8 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     // CPvec = [cp[0]; cp[1];...] : dim*(N-3) x 1 vector
     Eigen::VectorXd CPvec0 = rossy_utils::MatrixtoVector(CPvars0);
     double h0 = getMinH(CPvec0, planning_cmd);
+
+    timer.printElapsedMiliSec("initialize = ");
 
     // 2. optimization: find CPvec, h
     Eigen::VectorXd CPvec;
@@ -50,11 +57,14 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     double hbar = h0;
     
     int n_iter(0), max_iter(5);
+    timer.printElapsedMiliSec("opt setting = ");
     while(n_iter++ < max_iter){
      
         // update constraints: Ac*delCP + ah*delh <= b
         updateConstraints(CPbar, hbar, Ac, ah, b);
+        timer.printElapsedMiliSec("updateConstraints = ");
         addColConstraints(CPbar, hbar, Ac, ah, b);
+        timer.printElapsedMiliSec("addColConstraints = ");
 
         // set constraints
         A = Eigen::MatrixXd::Zero(ah.size(), CPdim+1);
@@ -74,6 +84,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         // update
         CPvec = CPbar + x.segment(0,CPdim);
         h = getMinH(CPvec, planning_cmd);
+        timer.printElapsedMiliSec("solve QP = ");
 
         // check terminate conditions
         if(h>hbar){
@@ -115,7 +126,6 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
     Eigen::MatrixXd &Q,
     Eigen::VectorXd &q)
 {
-    std::cout<<" I'm here : updateQuadCostCoeffs " << std::endl;
     int dim = dim_;
     int CPdim = CPbar.size();
     int n = (int)(CPdim/dim); // = N-3   
@@ -215,6 +225,7 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
                                         Eigen::MatrixXd &Ac,
                                         Eigen::VectorXd &ah,
                                         Eigen::VectorXd &b){
+
     double dist_relaxed = -0.01;
     Eigen::MatrixXd Actmp;
     Eigen::VectorXd ahtmp, btmp, btmp1, btmp2;
@@ -235,7 +246,7 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
     obstacle_manager_->updateObstacleCoeff(joint_configs, U, d);
 
     // 
-    std::cout<<" obstacle constraint dimension: " << d.size() << std::endl;
+    // std::cout<<" obstacle constraint dimension: " << d.size() << std::endl;
     int NObs = U.rows();
 
     if(NObs>0){

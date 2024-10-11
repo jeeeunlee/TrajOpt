@@ -4,6 +4,8 @@
 #include "rtcl/wrapper/rtcl_interface.h"
 #include "rossy_utils/robot_system/robot_system.hpp"
 #include "rossy_utils/math/math_utilities.hpp"
+// for benchmark
+#include "rossy_utils/general/clock.hpp"
 
 RtclObstacleManager::RtclObstacleManager(const std::string_view robot_name, 
                                 const std::string_view assets_directory)
@@ -16,7 +18,9 @@ RtclObstacleManager::RtclObstacleManager(const std::string_view robot_name,
 void RtclObstacleManager::updateObstacleCoeff(
         const std::vector<Eigen::VectorXd> &joint_configs,
         Eigen::MatrixXd & U, Eigen::VectorXd & d){
-    std::cout << " RtclObstacleManager::updateObstacleCoeff" << std::endl;
+    // std::cout << " RtclObstacleManager::updateObstacleCoeff" << std::endl;
+    Clock localtimer;
+    localtimer.start();
 
     // set gripped box
     if(gripped_box_updated_) {
@@ -25,6 +29,7 @@ void RtclObstacleManager::updateObstacleCoeff(
                                     gripped_box_.dimension.cast<float>());
         gripped_box_updated_ = false;
     }
+    localtimer.printElapsedMiliSec(" set gripped box = ");
     // set obstacles
     if(obstacles_updated_) {        
         std::vector<Eigen::VectorXf> pose_list;
@@ -41,6 +46,7 @@ void RtclObstacleManager::updateObstacleCoeff(
         rtcl_interface_->setBoxObstacles(pose_list, dim_list);
         obstacles_updated_ = false;
     }
+    localtimer.printElapsedMiliSec(" set obstacles = ");
 
     if(obstacles_.size()>0)
     {
@@ -51,9 +57,10 @@ void RtclObstacleManager::updateObstacleCoeff(
         Eigen::VectorXf dt;
         for (auto &q : joint_configs){
             // std::cout << " start checkJointConfigCollisionFreeWithDistance " << std::endl;
+            
             robot_collision_free = rtcl_interface_->checkJointConfigCollisionFreeWithDistance(q.cast<float>());
             // std::cout << " end checkJointConfigCollisionFreeWithDistance " << std::endl;
-            
+            localtimer.printElapsedMiliSec(" rtcl colission checker = ");
             // successfully loaded debug data from rtcl
             // std::cout << " debug data successfully loaded from rtcl " << std::endl;
             const uint dim{q.size()};
@@ -62,6 +69,7 @@ void RtclObstacleManager::updateObstacleCoeff(
             updateSingleJointCoeff(num_constraints, dim, Ut, dt);
             U = rossy_utils::dStack(U, Ut.cast<double>());
             d = rossy_utils::vStack(d, dt.cast<double>());
+            localtimer.printElapsedMiliSec("  - building constraints = ");
         }
     }
 }
@@ -92,8 +100,7 @@ void RtclObstacleManager::updateSingleJointCoeff(uint num_constraints,
                 r_ind = std::rand() % num_points;
             }
             // Ut.row(i) = (*debug_data.A_coeff)[r_ind];
-            Ut.row(i) = (*debug_data.ray_direction_projected)[r_ind];
-            
+            Ut.row(i) = (*debug_data.ray_direction_projected)[r_ind];            
             dt(i) = (*debug_data.robot_points_distance_to_hit)(r_ind);
         }
     }

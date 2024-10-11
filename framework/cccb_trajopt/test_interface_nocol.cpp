@@ -76,7 +76,7 @@ bool NoColTestInterface::doPlanning(void* user_cmd){
     clock_->start();
     plan_cmd_ = (PLANNING_COMMAND*)user_cmd;
     bool planned = planner_->doPlanning(plan_cmd_);
-    std::cout<<"doPlanning="<<clock_->stop()<<"ms"<<std::endl;
+    clock_->printElapsedMiliSec("doPlanning=");
     return planned;
 }
 
