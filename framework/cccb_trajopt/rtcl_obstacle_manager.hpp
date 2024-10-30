@@ -18,10 +18,14 @@ class RtclObstacleManager : public ObstacleManager {
         virtual void updateObstacleCoeff(const std::vector<Eigen::VectorXd> &joint_configs,
                                 Eigen::MatrixXd &U, Eigen::VectorXd &d);
 
-        void updateSingleJointCoeff(uint num_constraints,
-                                    uint dim,
+        void updateSingleJointCoeff(uint dim,
                                     Eigen::MatrixXf& Ut, 
                                     Eigen::VectorXf& dt);
+        
+        void updateRandomSingleJointCoeff(uint num_constraints,
+                                        uint dim,
+                                        Eigen::MatrixXf& Ut, 
+                                        Eigen::VectorXf& dt);
 
     protected:        
         rtcl::RtclInterface* rtcl_interface_;
