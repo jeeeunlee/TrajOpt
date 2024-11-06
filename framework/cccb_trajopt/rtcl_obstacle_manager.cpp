@@ -6,6 +6,7 @@
 #include "rossy_utils/math/math_utilities.hpp"
 // for benchmark
 #include "rossy_utils/general/clock.hpp"
+#include "rtcl_obstacle_manager.hpp"
 
 RtclObstacleManager::RtclObstacleManager(const std::string_view robot_name, 
                                 const std::string_view assets_directory)
@@ -19,8 +20,8 @@ void RtclObstacleManager::updateObstacleCoeff(
         const std::vector<Eigen::VectorXd> &joint_configs,
         Eigen::MatrixXd & U, Eigen::VectorXd & d){
     // std::cout << " RtclObstacleManager::updateObstacleCoeff" << std::endl;
-    Clock localtimer;
-    localtimer.start();
+    // Clock localtimer;
+    // localtimer.start();
 
     // set gripped box
     if(gripped_box_updated_) {
@@ -29,7 +30,8 @@ void RtclObstacleManager::updateObstacleCoeff(
                                     gripped_box_.dimension.cast<float>());
         gripped_box_updated_ = false;
     }
-    localtimer.printElapsedMiliSec(" set gripped box = ");
+    // localtimer.printElapsedMiliSec(" set gripped box = ");
+    
     // set obstacles
     if(obstacles_updated_) {        
         std::vector<Eigen::VectorXf> pose_list;
@@ -46,7 +48,7 @@ void RtclObstacleManager::updateObstacleCoeff(
         rtcl_interface_->setBoxObstacles(pose_list, dim_list);
         obstacles_updated_ = false;
     }
-    localtimer.printElapsedMiliSec(" set obstacles = ");
+    // localtimer.printElapsedMiliSec(" set obstacles = ");
 
     if(obstacles_.size()>0)
     {
@@ -59,15 +61,27 @@ void RtclObstacleManager::updateObstacleCoeff(
             // std::cout << " start checkJointConfigCollisionFreeWithDistance " << std::endl;
             robot_collision_free = rtcl_interface_->checkJointConfigCollisionFreeWithDistance(
                 q.cast<float>());
-            localtimer.printElapsedMiliSec(" rtcl colission checker = ");
+            // localtimer.printElapsedMiliSec(" rtcl colission checker = ");
             // successfully loaded debug data from rtcl
             const uint dim{q.size()};
             updateSingleJointCoeff(dim, Ut, dt);
             U = rossy_utils::dStack(U, Ut.cast<double>());
             d = rossy_utils::vStack(d, dt.cast<double>());
-            localtimer.printElapsedMiliSec(" building constraints = ");
+            // localtimer.printElapsedMiliSec(" building constraints = ");
         }
     }
+}
+
+
+void RtclObstacleManager::mapObstacleCoeff(
+    const Eigen::MatrixXd & U, 
+    const Eigen::MatrixXd & Ap, 
+    Eigen::MatrixXd & Actmp){
+    // Actmp = U*Ap_;
+    Eigen::MatrixXf Actmp_f;
+    rtcl_interface_->computeLongMatMul(
+        U.cast<float>(), Ap.cast<float>(), Actmp_f);
+    Actmp=Actmp_f.cast<double>();
 }
 
 void RtclObstacleManager::updateSingleJointCoeff(uint dim,

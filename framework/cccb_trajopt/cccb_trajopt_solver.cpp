@@ -17,8 +17,7 @@ CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj,
 }
 
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
-
-    std::cout<<" CCCBTrajOptSolver::solve " <<std::endl;
+    // std::cout<<" CCCBTrajOptSolver::solve " <<std::endl;
     Clock timer;
     timer.start();
     /* 1. initialize traj */
@@ -225,7 +224,6 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
                                         Eigen::MatrixXd &Ac,
                                         Eigen::VectorXd &ah,
                                         Eigen::VectorXd &b){
-
     double dist_relaxed = -0.01;
     Eigen::MatrixXd Actmp;
     Eigen::VectorXd ahtmp, btmp, btmp1, btmp2;
@@ -245,18 +243,18 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
     Eigen::VectorXd d = Eigen::VectorXd::Zero(0);
     obstacle_manager_->updateObstacleCoeff(joint_configs, U, d);
 
-    // 
-    // std::cout<<" obstacle constraint dimension: " << d.size() << std::endl;
+    // std::cout<<"   - obstacle constraint dimension: " << d.size() << std::endl;
     int NObs = U.rows();
 
     if(NObs>0){
         // add collision constraints
-        Actmp = U*Ap_;
+        // Actmp = U*Ap_;
+        ((RtclObstacleManager*)obstacle_manager_)->mapObstacleCoeff(U, Ap_, Actmp);
         ahtmp = Eigen::VectorXd::Zero(NObs,1);
         btmp = d + Eigen::VectorXd::Constant(NObs, dist_relaxed);        
         Ac = rossy_utils::vStack(Ac, Actmp);
         ah = rossy_utils::vStack(ah, ahtmp);
-        b = rossy_utils::vStack(b,btmp);
+        b = rossy_utils::vStack(b, btmp);
 
         // add max CPs dist for each
         double rmax = 0.1;
@@ -268,6 +266,7 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXd &CPbar,
         ah = rossy_utils::vStack(ah, ahtmp);
         b = rossy_utils::vStack(b,btmp);
     }
+
 }
 
 void CCCBTrajOptSolver::getKnotValues(SOLUTION * soln){
@@ -308,11 +307,11 @@ void CCCBTrajOptSolver::updateCoeffs(PLANNING_COMMAND* planning_cmd,
     pi_ = planning_cmd->joint_path[0];
     pf_ = planning_cmd->joint_path[N_-2];
 
-    std::cout << "updateCoeffs : ";
-    std::cout << "N_ = " << N_ << ", ";
-    std::cout << "dim_ = " << dim_ << std::endl;
-    std::cout << "pi_ = " << pi_.transpose() << std::endl;
-    std::cout << "pf_ = " << pf_.transpose() << std::endl;
+    // std::cout << "updateCoeffs : ";
+    // std::cout << "N_ = " << N_ << ", ";
+    // std::cout << "dim_ = " << dim_ << std::endl;
+    // std::cout << "pi_ = " << pi_.transpose() << std::endl;
+    // std::cout << "pf_ = " << pf_.transpose() << std::endl;
                             
     Ap_ = cccb_traj->computeAp(N_,dim_);
     Av_ = cccb_traj->computeAv2(N_,dim_);
