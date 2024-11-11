@@ -17,8 +17,8 @@ RtclObstacleManager::RtclObstacleManager(const std::string_view robot_name,
 }
 
 void RtclObstacleManager::updateObstacleCoeff(
-        const std::vector<Eigen::VectorXd> &joint_configs,
-        Eigen::MatrixXd & U, Eigen::VectorXd & d){
+        const std::vector<Eigen::VectorXf> &joint_configs,
+        Eigen::MatrixXf & U, Eigen::VectorXf & d){
     // std::cout << " RtclObstacleManager::updateObstacleCoeff" << std::endl;
     // Clock localtimer;
     // localtimer.start();
@@ -26,23 +26,23 @@ void RtclObstacleManager::updateObstacleCoeff(
     // set gripped box
     if(gripped_box_updated_) {
         rtcl_interface_->clearGrippedBox();
-        rtcl_interface_->setGrippedBox(gripped_box_.pose_from_ee.cast<float>(), 
-                                    gripped_box_.dimension.cast<float>());
+        rtcl_interface_->setGrippedBox(gripped_box_.pose_from_ee, 
+                                    gripped_box_.dimension);
         gripped_box_updated_ = false;
     }
     // localtimer.printElapsedMiliSec(" set gripped box = ");
-    
+
     // set obstacles
     if(obstacles_updated_) {        
         std::vector<Eigen::VectorXf> pose_list;
         std::vector<Eigen::Vector3f> dim_list;
         for(auto &obs: obstacles_){
-            const Eigen::VectorXd pose{obs.pose};
-            const Eigen::Vector3d dim{obs.dimension};
+            const Eigen::VectorXf pose{obs.pose};
+            const Eigen::Vector3f dim{obs.dimension};
             // std::cout << "pose = "<< pose.transpose() << std::endl;
             // std::cout << "dim = "<< dim.transpose() << std::endl;
-            pose_list.push_back(pose.cast<float>());
-            dim_list.push_back(dim.cast<float>());            
+            pose_list.push_back(pose);
+            dim_list.push_back(dim);            
         }
         rtcl_interface_->clearBoxObstacles();
         rtcl_interface_->setBoxObstacles(pose_list, dim_list);
@@ -60,13 +60,13 @@ void RtclObstacleManager::updateObstacleCoeff(
         for (auto &q : joint_configs){
             // std::cout << " start checkJointConfigCollisionFreeWithDistance " << std::endl;
             robot_collision_free = rtcl_interface_->checkJointConfigCollisionFreeWithDistance(
-                q.cast<float>());
+                q);
             // localtimer.printElapsedMiliSec(" rtcl colission checker = ");
             // successfully loaded debug data from rtcl
             const uint dim{q.size()};
             updateSingleJointCoeff(dim, Ut, dt);
-            U = rossy_utils::dStack(U, Ut.cast<double>());
-            d = rossy_utils::vStack(d, dt.cast<double>());
+            U = rossy_utils::dStack(U, Ut);
+            d = rossy_utils::vStack(d, dt);
             // localtimer.printElapsedMiliSec(" building constraints = ");
         }
     }
@@ -74,14 +74,12 @@ void RtclObstacleManager::updateObstacleCoeff(
 
 
 void RtclObstacleManager::mapObstacleCoeff(
-    const Eigen::MatrixXd & U, 
-    const Eigen::MatrixXd & Ap, 
-    Eigen::MatrixXd & Actmp){
+    const Eigen::MatrixXf & U, 
+    const Eigen::MatrixXf & Ap, 
+    Eigen::MatrixXf & Actmp){
     // Actmp = U*Ap_;
-    Eigen::MatrixXf Actmp_f;
     rtcl_interface_->computeLongMatMul(
-        U.cast<float>(), Ap.cast<float>(), Actmp_f);
-    Actmp=Actmp_f.cast<double>();
+        U, Ap, Actmp);
 }
 
 void RtclObstacleManager::updateSingleJointCoeff(uint dim,

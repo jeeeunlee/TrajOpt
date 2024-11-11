@@ -52,8 +52,8 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
 
     // generate_rand_problem(plancmd);    
     read_case(plancmd,robot_name,1);
-    plancmd->gripped_box.pose_from_ee << 0.0, 0.0, 0.2032, 1.0, 0.0, 0.0, 0.0;
-    plancmd->gripped_box.dimension << 0.4064, 0.4064, 0.4064;
+    plancmd->gripped_box.pose_from_ee << 0.0f, 0.0f, 0.2032f, 1.0f, 0.0f, 0.0f, 0.0f;
+    plancmd->gripped_box.dimension << 0.4064f, 0.4064f, 0.4064f;
     std::cout << "setting gripped box info"<< std::endl;
     std::cout << plancmd->gripped_box.pose_from_ee.transpose() << std::endl;
     std::cout << plancmd->gripped_box.dimension.transpose() << std::endl;

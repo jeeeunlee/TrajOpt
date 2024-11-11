@@ -9,12 +9,12 @@ void generate_rand_problem(PLANNING_COMMAND* plancmd){
 
     int N = 30;
     int d = 2;
-    Eigen::VectorXd pi = {-1,-1};
-    Eigen::VectorXd pf = {1, 1};
+    Eigen::VectorXf pi = {-1,-1};
+    Eigen::VectorXf pf = {1, 1};
 
-    plancmd->max_joint_speed = Eigen::VectorXd::Constant(d, 0.6);
-    plancmd->max_joint_acceleration = Eigen::VectorXd::Constant(d, 0.3);
-    plancmd->max_joint_jerk = Eigen::VectorXd::Constant(d, 0.45);
+    plancmd->max_joint_speed = Eigen::VectorXf::Constant(d, 0.6);
+    plancmd->max_joint_acceleration = Eigen::VectorXf::Constant(d, 0.3);
+    plancmd->max_joint_jerk = Eigen::VectorXf::Constant(d, 0.45);
 
     // random path generator
     int n = N-2; // pi = p[0],..., p[n]=pf
@@ -36,8 +36,8 @@ void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){
     auto problem = json["problem"];
 
     const size_t dim = problem["dim"];    
-    Eigen::VectorXd pi = json_list_to_eigen(problem["pi"]);
-    Eigen::VectorXd pf = json_list_to_eigen(problem["pf"]);
+    Eigen::VectorXf pi = json_list_to_eigen(problem["pi"]);
+    Eigen::VectorXf pf = json_list_to_eigen(problem["pf"]);
 
     plancmd->max_joint_speed = json_list_to_eigen(problem["VC"]);
     plancmd->max_joint_acceleration = json_list_to_eigen(problem["AC"]);
@@ -69,7 +69,7 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
 
     infc->getPlannedResult(imp_soln);
 
-    double EPS = 1e-8;
+    float EPS = 1e-8;
     for(int i(0); i<solution->path.size() ; ++i)    
         EXPECT_NEAR((solution->path[i]-imp_soln->path[i]).norm(), 0., EPS);
     for(int i(0); i<solution->velocity.size() ; ++i)    
@@ -106,7 +106,7 @@ TEST(CCCBTrajOptTest, CheckNoColCaseQP){
 
     infc->getPlannedResult(imp_soln);
 
-    double EPS = 1e-8;
+    float EPS = 1e-8;
     for(int i(0); i<solution->path.size() ; ++i)    
         EXPECT_NEAR((solution->path[i]-imp_soln->path[i]).norm(), 0., EPS);
     // for(int i(0); i<solution->velocity.size() ; ++i)    

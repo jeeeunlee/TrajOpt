@@ -32,7 +32,7 @@ NoColTestInterface::NoColTestInterface(const std::string_view urdf_path)
     link_idx_ = 20; // panda_hand    
     
     // class constructors
-    robot_ = new RobotSystem(robot_urdf_path_);    
+    robot_ = new RobotSystem<float>(robot_urdf_path_);    
     cccb_traj_ = new CCCBTrajManager();
     obstacle_manager_ = new NoObstacleManager();
     planner_ = new CCCBTrajOptPlanner(robot_, cccb_traj_, obstacle_manager_, link_idx_);
@@ -40,10 +40,10 @@ NoColTestInterface::NoColTestInterface(const std::string_view urdf_path)
     clock_ = new Clock();    
 
     running_time_ = 0.;
-
-    cmd_jpos_ = Eigen::VectorXd::Zero(robot_->getNumDofs());
-    cmd_jvel_ = Eigen::VectorXd::Zero(robot_->getNumDofs());
-    cmd_jtrq_ = Eigen::VectorXd::Zero(robot_->getNumDofs());
+    
+    cmd_jpos_ = Eigen::VectorXf::Zero(robot_->getNumDofs());
+    cmd_jvel_ = Eigen::VectorXf::Zero(robot_->getNumDofs());
+    cmd_jtrq_ = Eigen::VectorXf::Zero(robot_->getNumDofs());
 
     rossy_utils::color_print(myColor::BoldCyan, rossy_utils::border);
 }
@@ -80,31 +80,31 @@ bool NoColTestInterface::doPlanning(void* user_cmd){
     return planned;
 }
 
-void NoColTestInterface::updateVelLimit(const Eigen::VectorXd &vm){
+void NoColTestInterface::updateVelLimit(const Eigen::VectorXf &vm){
     ((CCCBTrajOptPlanner*)planner_)->setVelLimit(vm);
 }
 
-void NoColTestInterface::updateAccLimit(const Eigen::VectorXd &am){
+void NoColTestInterface::updateAccLimit(const Eigen::VectorXf &am){
     ((CCCBTrajOptPlanner*)planner_)->setAccLimit(am);
 }
 
-void NoColTestInterface::updateJerkLimit(const Eigen::VectorXd &jm){
+void NoColTestInterface::updateJerkLimit(const Eigen::VectorXf &jm){
     ((CCCBTrajOptPlanner*)planner_)->setJerkLimit(jm);
 }
 
 
-void NoColTestInterface::updateAlpha(double alpha)
+void NoColTestInterface::updateAlpha(float alpha)
 {
     ((CCCBTrajOptPlanner*)planner_)->setAlpha(alpha);
 }
 
-void NoColTestInterface::getPlannedTrajectory(const double& time_step,
+void NoColTestInterface::getPlannedTrajectory(const float& time_step,
                                         TRAJ_DATA* traj_data){ 
     std::cout << "getPlannedTrajectory " << std::endl;;
     // generate desired q, qdot
-    Eigen::VectorXd q, qdot;
-    Eigen::VectorXd x, xdot;
-    double t(0.), tend=cccb_traj_->getMotionPeriod();
+    Eigen::VectorXf q, qdot;
+    Eigen::VectorXf x, xdot;
+    float t(0.), tend=cccb_traj_->getMotionPeriod();
 
     // initialize containers
     traj_data->tdata.clear();
@@ -143,26 +143,26 @@ void NoColTestInterface::saveData(SensorData* _sensor_data, RobotCommand* _comma
 
     // current joint position & joint velocity & acc
     // (1) from robot system
-    // Eigen::VectorXd cmd_jvel_prev = cmd_jvel_;    
+    // Eigen::VectorXf cmd_jvel_prev = cmd_jvel_;    
     // cmd_jpos_ = robot_->getQ();
     // cmd_jvel_ = robot_->getQdot();
     // cmd_jacc_ = (cmd_jvel_- cmd_jvel_prev)/0.001;
 
     // (2) from SensorData
-    // Eigen::VectorXd cmd_jvel_prev = cmd_jvel_;    
+    // Eigen::VectorXf cmd_jvel_prev = cmd_jvel_;    
     // cmd_jpos_ = _sensor_data->q;
     // cmd_jvel_ = _sensor_data->qdot;
     // cmd_jacc_ = (cmd_jvel_- cmd_jvel_prev)/0.001;
 
     // (3) from RobotCommand
-    Eigen::VectorXd cmd_jvel_prev = cmd_jvel_;    
+    Eigen::VectorXf cmd_jvel_prev = cmd_jvel_;    
     cmd_jpos_ = _command_data->q;
     cmd_jvel_ = _command_data->qdot;
     cmd_jacc_ = _command_data->qddot;
    
     // current joint trq
-    Eigen::MatrixXd M = robot_->getMassMatrix();
-    Eigen::VectorXd cori = robot_->getCoriolisGravity();
+    Eigen::MatrixXf M = robot_->getMassMatrix();
+    Eigen::VectorXf cori = robot_->getCoriolisGravity();
     cmd_jtrq_ = M*cmd_jacc_ + cori;    
 
     rossy_utils::saveVector(cmd_jpos_, "test_q");
@@ -171,7 +171,7 @@ void NoColTestInterface::saveData(SensorData* _sensor_data, RobotCommand* _comma
     rossy_utils::saveVector(cmd_jtrq_, "test_trq");    
 
     // current EE position
-    Eigen::VectorXd pose;
+    Eigen::VectorXf pose;
     rossy_utils::convertIsoToVec7d(
         robot_->getBodyNodeIsometry(link_idx_), pose);
     rossy_utils::saveVector(pose, "test_EE");

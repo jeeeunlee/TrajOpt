@@ -4,7 +4,7 @@
 
 // Test Controller
  
-SimpleController::SimpleController(RobotSystem* _robot, Planner* _planner)
+SimpleController::SimpleController(RobotSystem<float>* _robot, Planner* _planner)
   : Controller(_robot, _planner) { 
     rossy_utils::pretty_constructor(1, "Simple Controller");
     
@@ -24,7 +24,7 @@ void SimpleController::getCommand(RobotCommand* cmd){
     b_first = false;
   }   
 
-  Eigen::VectorXd q_cmd, qdot_cmd, qddot_cmd;
+  Eigen::VectorXf q_cmd, qdot_cmd, qddot_cmd;
   bool bplan = planner_->getPlannedCommand(q_cmd, qdot_cmd, qddot_cmd);
   if(bplan){
     q_cmd_last_ = q_cmd;
@@ -35,13 +35,13 @@ void SimpleController::getCommand(RobotCommand* cmd){
     cmd->qddot=qddot_cmd;
   }else {
     cmd->q=q_cmd_last_;  
-    cmd->qdot=Eigen::VectorXd::Zero(q_cmd_last_.size());  
-    cmd->qddot=Eigen::VectorXd::Zero(q_cmd_last_.size());  
+    cmd->qdot=Eigen::VectorXf::Zero(q_cmd_last_.size());  
+    cmd->qddot=Eigen::VectorXf::Zero(q_cmd_last_.size());  
   }
 }
 
-void SimpleController::enforcePositionLimits(Eigen::VectorXd& q_cmd, 
-                                          Eigen::VectorXd& qdot_cmd){
+void SimpleController::enforcePositionLimits(Eigen::VectorXf& q_cmd, 
+                                          Eigen::VectorXf& qdot_cmd){
     // check limits
     for(int i(0); i<ndof_; ++i){
       q_cmd(i) = q_cmd(i) > q_lower_(i) ? q_cmd(i) : q_lower_(i);
@@ -49,8 +49,8 @@ void SimpleController::enforcePositionLimits(Eigen::VectorXd& q_cmd,
     }
 }
 
-void SimpleController::enforceVelocityLimits(Eigen::VectorXd& q_cmd, 
-                                          Eigen::VectorXd& qdot_cmd){
+void SimpleController::enforceVelocityLimits(Eigen::VectorXf& q_cmd, 
+                                          Eigen::VectorXf& qdot_cmd){
     // check limits
     for(int i(0); i<ndof_; ++i){
       qdot_cmd(i) = qdot_cmd(i) > qdot_lower_(i) ? qdot_cmd(i) : qdot_lower_(i);

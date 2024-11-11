@@ -15,36 +15,36 @@ class CCCBTrajOptPlanner: public Planner{
     int link_idx_;
     int n_dof_;
     // updatable through the interface
-    Eigen::VectorXd vel_limit_;
-    Eigen::VectorXd acc_limit_;
-    Eigen::VectorXd jerk_limit_;
+    Eigen::VectorXf vel_limit_;
+    Eigen::VectorXf acc_limit_;
+    Eigen::VectorXf jerk_limit_;
 
     CCCBTrajManager* cccb_traj_;
     CCCBTrajOptSolver* trajopt_solver_;
     ObstacleManager* obstacle_manager_;
 
-    double threshold_pinv_;
+    float threshold_pinv_;
     
   public:
-    CCCBTrajOptPlanner(RobotSystem* _robot, 
+    CCCBTrajOptPlanner(RobotSystem<float>* _robot, 
                       CCCBTrajManager* _cccb_traj, 
                       ObstacleManager* _obstacle_manager, 
                       int _link_idx);
     ~CCCBTrajOptPlanner();
 
     bool doPlanning(PLANNING_COMMAND* planning_cmd);
-    bool getPlannedCommand(Eigen::VectorXd& q_cmd);
-    bool getPlannedCommand(Eigen::VectorXd& q_cmd,
-                          Eigen::VectorXd& qdot_cmd);
-    bool getPlannedCommand(Eigen::VectorXd& q_cmd,
-                          Eigen::VectorXd& qdot_cmd,
-                          Eigen::VectorXd& qddot_cmd);
+    bool getPlannedCommand(Eigen::VectorXf& q_cmd);
+    bool getPlannedCommand(Eigen::VectorXf& q_cmd,
+                          Eigen::VectorXf& qdot_cmd);
+    bool getPlannedCommand(Eigen::VectorXf& q_cmd,
+                          Eigen::VectorXf& qdot_cmd,
+                          Eigen::VectorXf& qddot_cmd);
 
     // data setting for interface
-    void setVelLimit(const Eigen::VectorXd &vm);   
-    void setAccLimit(const Eigen::VectorXd &am);
-    void setJerkLimit(const Eigen::VectorXd &jm);
-    void setAlpha(double alpha);
+    void setVelLimit(const Eigen::VectorXf &vm);   
+    void setAccLimit(const Eigen::VectorXf &am);
+    void setJerkLimit(const Eigen::VectorXf &jm);
+    void setAlpha(float alpha);
 
     // for check
     void getPlannedResult(SOLUTION * soln);

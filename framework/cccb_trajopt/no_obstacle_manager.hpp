@@ -9,8 +9,8 @@ class NoObstacleManager : public ObstacleManager {
         virtual ~NoObstacleManager(){}
 
         virtual void updateObstacleCoeff(
-            const std::vector<Eigen::VectorXd> &joint_configs,
-            Eigen::MatrixXd &U, 
-            Eigen::VectorXd &d){ // do nothing
+            const std::vector<Eigen::VectorXf> &joint_configs,
+            Eigen::MatrixXf &U, 
+            Eigen::VectorXf &d){ // do nothing
             };
 };

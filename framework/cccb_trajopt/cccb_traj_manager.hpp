@@ -1,6 +1,8 @@
 #pragma once
 // functions on cccb splines
 #include "rossy_utils/io/io_utilities.hpp"
+
+template <typename Scalar>
 class CCCBSplineVec;
 
 class CCCBTrajManager{ 
@@ -8,47 +10,47 @@ class CCCBTrajManager{
         CCCBTrajManager();
         ~CCCBTrajManager();
 
-        void setBSpline(const Eigen::VectorXd &pi, 
-            const Eigen::VectorXd &pf,
-            const std::vector<Eigen::VectorXd> &cp_in);  
-        void setTimeDuration(const double & h_in);
+        void setBSpline(const Eigen::VectorXf &pi, 
+            const Eigen::VectorXf &pf,
+            const std::vector<Eigen::VectorXf> &cp_in);  
+        void setTimeDuration(const float & h_in);
 
-        void getCommand(double t, Eigen::VectorXd& q_cmd);
-        void getCommand(double t, 
-                        Eigen::VectorXd& q_cmd, 
-                        Eigen::VectorXd& qdot_cmd);
-        void getCommand(double t, 
-                        Eigen::VectorXd& q_cmd, 
-                        Eigen::VectorXd& qdot_cmd,
-                        Eigen::VectorXd& qddot_cmd);       
-        double getMotionPeriod();
+        void getCommand(float t, Eigen::VectorXf& q_cmd);
+        void getCommand(float t, 
+                        Eigen::VectorXf& q_cmd, 
+                        Eigen::VectorXf& qdot_cmd);
+        void getCommand(float t, 
+                        Eigen::VectorXf& q_cmd, 
+                        Eigen::VectorXf& qdot_cmd,
+                        Eigen::VectorXf& qddot_cmd);       
+        float getMotionPeriod();
 
     public:
-        Eigen::MatrixXd findBSpline(
-            const std::vector< Eigen::VectorXd > &joint_path);
-        Eigen::MatrixXd computeAp(int N, int dim);
-        Eigen::VectorXd computebp(int N, int dim, 
-                    const Eigen::VectorXd &pi, const Eigen::VectorXd &pf);
+        Eigen::MatrixXf findBSpline(
+            const std::vector< Eigen::VectorXf > &joint_path);
+        Eigen::MatrixXf computeAp(int N, int dim);
+        Eigen::VectorXf computebp(int N, int dim, 
+                    const Eigen::VectorXf &pi, const Eigen::VectorXf &pf);
         
         // this maps CPs of first-derivative of B-Spline
-        Eigen::MatrixXd computeAv2(int N, int dim);
-        Eigen::VectorXd computebv2(int N, int dim,
-                    const Eigen::VectorXd &pi, const Eigen::VectorXd &pf);
+        Eigen::MatrixXf computeAv2(int N, int dim);
+        Eigen::VectorXf computebv2(int N, int dim,
+                    const Eigen::VectorXf &pi, const Eigen::VectorXf &pf);
         // this maps each values at knot points 
-        Eigen::MatrixXd computeAv(int N, int dim);
-        Eigen::VectorXd computebv(int N, int dim,
-                    const Eigen::VectorXd &pi, const Eigen::VectorXd &pf);
-        Eigen::MatrixXd computeAa(int N, int dim);
-        Eigen::VectorXd computeba(int N, int dim, 
-                    const Eigen::VectorXd &pi, const Eigen::VectorXd &pf);
-        Eigen::MatrixXd computeAj(int N, int dim);
-        Eigen::VectorXd computebj(int N, int dim, 
-                    const Eigen::VectorXd &pi, const Eigen::VectorXd &pf);
+        Eigen::MatrixXf computeAv(int N, int dim);
+        Eigen::VectorXf computebv(int N, int dim,
+                    const Eigen::VectorXf &pi, const Eigen::VectorXf &pf);
+        Eigen::MatrixXf computeAa(int N, int dim);
+        Eigen::VectorXf computeba(int N, int dim, 
+                    const Eigen::VectorXf &pi, const Eigen::VectorXf &pf);
+        Eigen::MatrixXf computeAj(int N, int dim);
+        Eigen::VectorXf computebj(int N, int dim, 
+                    const Eigen::VectorXf &pi, const Eigen::VectorXf &pf);
 
     public:
-        CCCBSplineVec* spline_t2q_;    
+        CCCBSplineVec<float>* spline_t2q_;    
         
     private:
-        Eigen::MatrixXd stack1dMatDim(int dim, const Eigen::MatrixXd &A1d);
+        Eigen::MatrixXf stack1dMatDim(int dim, const Eigen::MatrixXf &A1d);
 
 };

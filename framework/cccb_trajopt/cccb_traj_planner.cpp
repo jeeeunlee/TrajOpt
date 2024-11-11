@@ -11,7 +11,7 @@
 
 
 // CCCB-spline based Trajectory optimization planner
-CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem* _robot, 
+CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem<float>* _robot, 
     CCCBTrajManager* _cccb_traj, 
     ObstacleManager* _obstacle_manager, 
     int _link_idx) 
@@ -26,8 +26,8 @@ CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem* _robot,
 
     // set default jerk limit value as 1000
     vel_limit_ = robot_->GetVelocityUpperLimits();
-    acc_limit_ = Eigen::VectorXd::Constant(n_dof_, 6.);     
-    jerk_limit_ = Eigen::VectorXd::Constant(n_dof_, 1000.); 
+    acc_limit_ = Eigen::VectorXf::Constant(n_dof_, 6.);     
+    jerk_limit_ = Eigen::VectorXf::Constant(n_dof_, 1000.); 
 }
 
 CCCBTrajOptPlanner::~CCCBTrajOptPlanner() { }
@@ -58,7 +58,7 @@ bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {
     }
 }
 
-bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd) {
+bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXf& q_cmd) {
     if(b_planned_)
     {
         if(!b_planned_firstvisit_){
@@ -71,8 +71,8 @@ bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd) {
     return false;
 }
 
-bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd,
-                                    Eigen::VectorXd& qdot_cmd) {
+bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXf& q_cmd,
+                                    Eigen::VectorXf& qdot_cmd) {
     if(b_planned_)
     {
         if(!b_planned_firstvisit_){
@@ -86,9 +86,9 @@ bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd,
     return false;        
 }
 
-bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd,
-                                    Eigen::VectorXd& qdot_cmd,
-                                    Eigen::VectorXd& qddot_cmd) {
+bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXf& q_cmd,
+                                    Eigen::VectorXf& qdot_cmd,
+                                    Eigen::VectorXf& qddot_cmd) {
     if(b_planned_)
     {
         if(!b_planned_firstvisit_){
@@ -105,25 +105,25 @@ bool CCCBTrajOptPlanner::getPlannedCommand(Eigen::VectorXd& q_cmd,
     return false;        
 }
 
-void CCCBTrajOptPlanner::setVelLimit(const Eigen::VectorXd &vm){
+void CCCBTrajOptPlanner::setVelLimit(const Eigen::VectorXf &vm){
     rossy_utils::pretty_print(vm, std::cout, "setVelLimit");
     vel_limit_ = vm; 
 } 
-void CCCBTrajOptPlanner::setAccLimit(const Eigen::VectorXd &am){
+void CCCBTrajOptPlanner::setAccLimit(const Eigen::VectorXf &am){
     rossy_utils::pretty_print(am, std::cout, "setAccLimit");
     acc_limit_ = am; 
 }
-void CCCBTrajOptPlanner::setJerkLimit(const Eigen::VectorXd &jm){
+void CCCBTrajOptPlanner::setJerkLimit(const Eigen::VectorXf &jm){
     rossy_utils::pretty_print(jm, std::cout, "setJerkLimit");
     jerk_limit_ = jm; 
 }
 
-void CCCBTrajOptPlanner::setAlpha(double alpha)
+void CCCBTrajOptPlanner::setAlpha(float alpha)
 {
     trajopt_solver_->alpha_ = alpha;
 }
 
-void CCCBTrajOptPlanner::getPlannedResult(SOLUTION * soln)
+void CCCBTrajOptPlanner::getPlannedResult(SOLUTION* soln)
 {
     trajopt_solver_-> getKnotValues(soln);
 }

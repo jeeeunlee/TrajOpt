@@ -28,9 +28,9 @@ class ObstacleManager{
             gripped_box_updated_ = true;
         }
         virtual void updateObstacleCoeff(
-            const std::vector<Eigen::VectorXd> &joint_configs,
-            Eigen::MatrixXd &U, 
-            Eigen::VectorXd &d) = 0;
+            const std::vector<Eigen::VectorXf> &joint_configs,
+            Eigen::MatrixXf &U, 
+            Eigen::VectorXf &d) = 0;
 
     protected:
         std::vector<OBSTACLE> obstacles_;

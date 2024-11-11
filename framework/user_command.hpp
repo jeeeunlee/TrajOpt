@@ -18,10 +18,10 @@ class TRAJ_DATA{
     ~TRAJ_DATA(){}
   public:
     std::vector< double > tdata;
-    std::vector< Eigen::VectorXd > qdata;
-    std::vector< Eigen::VectorXd > dqdata;
-    std::vector< Eigen::VectorXd > xdata;
-    std::vector< Eigen::VectorXd > dxdata;
+    std::vector< Eigen::VectorXf > qdata;
+    std::vector< Eigen::VectorXf > dqdata;
+    std::vector< Eigen::VectorXf > xdata;
+    std::vector< Eigen::VectorXf > dxdata;
     double period;
 };
 
@@ -30,9 +30,9 @@ class OBSTACLE{
     OBSTACLE(){
       // only box obstacles for now
       // pos(3) + quat(4)
-      pose = Eigen::VectorXd::Zero(7);
+      pose = Eigen::VectorXf::Zero(7);
       pose << 0., 0., 0., 1., 0., 0., 0.; 
-      dimension = Eigen::VectorXd::Zero(3);
+      dimension = Eigen::VectorXf::Zero(3);
       type = 0;
       name = "";
     }
@@ -41,8 +41,8 @@ class OBSTACLE{
       std::cout << " dimension = " << this->dimension.transpose() << std::endl;
     }
   public:
-    Eigen::VectorXd pose;
-    Eigen::VectorXd dimension;
+    Eigen::VectorXf pose;
+    Eigen::VectorXf dimension;
     int type; // 0: box
     std::string name;
 };
@@ -51,9 +51,9 @@ class GRIPPED_BOX{
     public:
     GRIPPED_BOX(){
       // pos(3) + quat(4)
-      pose_from_ee = Eigen::VectorXd::Zero(7);
+      pose_from_ee = Eigen::VectorXf::Zero(7);
       pose_from_ee << 0., 0., 0., 1., 0., 0., 0.; 
-      dimension = Eigen::VectorXd::Zero(3);
+      dimension = Eigen::VectorXf::Zero(3);
     }
     void printInfo() const{
       std::cout << " gripped box information :" << std::endl;
@@ -61,8 +61,8 @@ class GRIPPED_BOX{
       std::cout << "\t- dimension = " << this->dimension.transpose() << std::endl;
     }
   public:
-    Eigen::VectorXd pose_from_ee;
-    Eigen::VectorXd dimension;
+    Eigen::VectorXf pose_from_ee;
+    Eigen::VectorXf dimension;
 };
 
 class PLANNING_COMMAND{
@@ -80,12 +80,12 @@ public:
       }
     ~PLANNING_COMMAND(){}
   public:
-    std::vector< Eigen::VectorXd > joint_path;
-    std::vector< Eigen::VectorXd > cartesian_path;
+    std::vector< Eigen::VectorXf > joint_path;
+    std::vector< Eigen::VectorXf > cartesian_path;
     
-    Eigen::VectorXd max_joint_acceleration;
-    Eigen::VectorXd max_joint_speed;
-    Eigen::VectorXd max_joint_jerk;
+    Eigen::VectorXf max_joint_acceleration;
+    Eigen::VectorXf max_joint_speed;
+    Eigen::VectorXf max_joint_jerk;
     std::vector< OBSTACLE > obstacles;
     GRIPPED_BOX gripped_box;
 };
@@ -104,10 +104,10 @@ public:
     ~SOLUTION(){}
   public:
     double h;
-    std::vector< Eigen::VectorXd > path;
-    std::vector< Eigen::VectorXd > velocity;
-    std::vector< Eigen::VectorXd > acceleration;
-    std::vector< Eigen::VectorXd > jerk;       
+    std::vector< Eigen::VectorXf > path;
+    std::vector< Eigen::VectorXf > velocity;
+    std::vector< Eigen::VectorXf > acceleration;
+    std::vector< Eigen::VectorXf > jerk;       
 };
 
 
@@ -119,18 +119,18 @@ class WPT_DATA{
     ~WPT_DATA(){}
 
     int getsize(){return data.size();}
-    Eigen::VectorXd getdata(unsigned int i){
+    Eigen::VectorXf getdata(unsigned int i){
       if(i>0 && i<data.size()) return data[i];
-      else return Eigen::VectorXd::Zero(0);
+      else return Eigen::VectorXf::Zero(0);
     }
   public:
     bool b_cartesian;
-    std::vector< Eigen::VectorXd > data;
+    std::vector< Eigen::VectorXf > data;
 }; // t x d data
 
 class VEC_DATA{
   public:
-  Eigen::VectorXd data;
+  Eigen::VectorXf data;
   VEC_DATA(){}
   ~VEC_DATA(){}
 }; // d x 1 data

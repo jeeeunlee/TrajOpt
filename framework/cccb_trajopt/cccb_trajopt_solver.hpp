@@ -14,28 +14,28 @@ class CCCBTrajOptSolver{
                         ObstacleManager* _obstacle_manager);
         ~CCCBTrajOptSolver(){ }
         bool solve(PLANNING_COMMAND* planning_cmd);
-        double getMinH(const Eigen::VectorXd &CPvec,
+        float getMinH(const Eigen::VectorXf &CPvec,
                         PLANNING_COMMAND* planning_cmd);
-        void updateConstraints(const Eigen::VectorXd &Xbar,
-                                double hbar, 
-                                Eigen::MatrixXd &Ac,
-                                Eigen::VectorXd &ah,
-                                Eigen::VectorXd &b);
-        void addColConstraints(const Eigen::VectorXd &Xbar,
-                                double hbar,
-                                Eigen::MatrixXd &Ac,
-                                Eigen::VectorXd &ah,
-                                Eigen::VectorXd &b);
+        void updateConstraints(const Eigen::VectorXf &Xbar,
+                                float hbar, 
+                                Eigen::MatrixXf &Ac,
+                                Eigen::VectorXf &ah,
+                                Eigen::VectorXf &b);
+        void addColConstraints(const Eigen::VectorXf &Xbar,
+                                float hbar,
+                                Eigen::MatrixXf &Ac,
+                                Eigen::VectorXf &ah,
+                                Eigen::VectorXf &b);
 
-        void updateQuadCostCoeffs(const Eigen::VectorXd &CPbar,
-                                Eigen::MatrixXd &Q,
-                                Eigen::VectorXd &q);
+        void updateQuadCostCoeffs(const Eigen::VectorXf &CPbar,
+                                Eigen::MatrixXf &Q,
+                                Eigen::VectorXf &q);
 
         // for check
         void getKnotValues(SOLUTION * soln);
 
     public:
-        double alpha_;
+        float alpha_;
 
     private:
         // instances
@@ -43,31 +43,31 @@ class CCCBTrajOptSolver{
         ObstacleManager* obstacle_manager_;
 
         // solution
-        Eigen::MatrixXd CPVec_;
-        double h_;
+        Eigen::MatrixXf CPVec_;
+        float h_;
 
         // coeff
         void updateCoeffs(PLANNING_COMMAND* planning_cmd, 
                         CCCBTrajManager* cccb_traj);
 
-        Eigen::MatrixXd Ap_;
-        Eigen::MatrixXd Av_;
-        Eigen::MatrixXd Aa_;
-        Eigen::MatrixXd Aj_;
-        Eigen::VectorXd bp_;
-        Eigen::VectorXd bv_;
-        Eigen::VectorXd ba_;
-        Eigen::VectorXd bj_;
+        Eigen::MatrixXf Ap_;
+        Eigen::MatrixXf Av_;
+        Eigen::MatrixXf Aa_;
+        Eigen::MatrixXf Aj_;
+        Eigen::VectorXf bp_;
+        Eigen::VectorXf bv_;
+        Eigen::VectorXf ba_;
+        Eigen::VectorXf bj_;
 
-        Eigen::VectorXd pi_;
-        Eigen::VectorXd pf_;
+        Eigen::VectorXf pi_;
+        Eigen::VectorXf pf_;
 
         int N_;
         int dim_;
 
-        Eigen::VectorXd VCrep_;
-        Eigen::VectorXd ACrep_;
-        Eigen::VectorXd JCrep_;
+        Eigen::VectorXf VCrep_;
+        Eigen::VectorXf ACrep_;
+        Eigen::VectorXf JCrep_;
 
 
 

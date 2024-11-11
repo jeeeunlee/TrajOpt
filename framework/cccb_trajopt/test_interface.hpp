@@ -12,7 +12,7 @@ class ObstacleManager;
 
 class TestInterface : public EnvInterface {
    protected:
-      double running_time_;
+      float running_time_;
 
       int link_idx_;      
       std::string robot_urdf_path_;      
@@ -28,10 +28,10 @@ class TestInterface : public EnvInterface {
       
       Clock* clock_;     
 
-      Eigen::VectorXd cmd_jpos_;
-      Eigen::VectorXd cmd_jvel_;
-      Eigen::VectorXd cmd_jacc_;
-      Eigen::VectorXd cmd_jtrq_;
+      Eigen::VectorXf cmd_jpos_;
+      Eigen::VectorXf cmd_jvel_;
+      Eigen::VectorXf cmd_jacc_;
+      Eigen::VectorXf cmd_jtrq_;
 
    public:
       TestInterface(const std::string_view robot_name, 
@@ -42,12 +42,12 @@ class TestInterface : public EnvInterface {
       virtual bool doPlanning(void* user_cmd);
       virtual void updateState(SensorData* _sensor_data);
 
-      void updateVelLimit(const Eigen::VectorXd &vm);
-      void updateAccLimit(const Eigen::VectorXd &am);
-      void updateJerkLimit(const Eigen::VectorXd &jm);  
-      void updateAlpha(double alpha);
+      void updateVelLimit(const Eigen::VectorXf &vm);
+      void updateAccLimit(const Eigen::VectorXf &am);
+      void updateJerkLimit(const Eigen::VectorXf &jm);  
+      void updateAlpha(float alpha);
 
-      void getPlannedTrajectory(const double& time_step,
+      void getPlannedTrajectory(const float& time_step,
                            TRAJ_DATA* traj_data);
 
       void getPlannedResult(SOLUTION * soln);

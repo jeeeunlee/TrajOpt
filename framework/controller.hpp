@@ -6,11 +6,11 @@ class Planner;
 
 class Controller{  
   protected:
-    RobotSystem* robot_;
+    RobotSystem<float>* robot_;
     Planner* planner_;
 
   public:   
-    Controller(RobotSystem* _robot, Planner* _planner){
+    Controller(RobotSystem<float>* _robot, Planner* _planner){
         robot_ = _robot;
         planner_ =_planner; }
 

@@ -3,12 +3,14 @@
 #include <deque>
 #include <Eigen/Dense>
 
+template <typename Scalar>
 class RobotSystem;
+
 class PLANNING_COMMAND;
 
 class Planner{
   protected:
-    RobotSystem* robot_;
+    RobotSystem<float>* robot_;
     double current_time_ =0.;
     double start_time_=0.;
     double planned_time_=0.;
@@ -18,17 +20,17 @@ class Planner{
     bool b_planned_firstvisit_=false;
 
   public:
-    Planner(RobotSystem* _robot){
+    Planner(RobotSystem<float>* _robot){
         robot_ = _robot; }
     virtual ~Planner(){}
 
     virtual bool doPlanning(PLANNING_COMMAND* _user_cmd) = 0;
-    virtual bool getPlannedCommand(Eigen::VectorXd& q_cmd) = 0;
-    virtual bool getPlannedCommand(Eigen::VectorXd& q_cmd,
-                                Eigen::VectorXd& qdot_cmd) = 0;
-    virtual bool getPlannedCommand(Eigen::VectorXd& q_cmd,
-                                Eigen::VectorXd& qdot_cmd,
-                                Eigen::VectorXd& qddot_cmd) = 0;
+    virtual bool getPlannedCommand(Eigen::VectorXf& q_cmd) = 0;
+    virtual bool getPlannedCommand(Eigen::VectorXf& q_cmd,
+                                Eigen::VectorXf& qdot_cmd) = 0;
+    virtual bool getPlannedCommand(Eigen::VectorXf& q_cmd,
+                                Eigen::VectorXf& qdot_cmd,
+                                Eigen::VectorXf& qddot_cmd) = 0;
 
     void reset(){b_planned_=false;}
     void updateTime(double _t){
