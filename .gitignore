@@ -6,7 +6,9 @@ MODULE.bazel*
 *.venv
 
 # personal
+*.bin
 *.zip
+*.pdf
 
 # dexterity IP
 simulator/configs/urdf_files/dex/*

@@ -12,6 +12,7 @@ data_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/0_raw_files"
 scadj_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/1_scale_adjustment"
 wt_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/2_watertight_10_000"
 pc_folder = file_dir + "/graphics-hiwin-ra830-2475-gs/3_point_clouds/100"
+
 # for robot link data (except gripper), they're scaled in [mm] so we rescale it to [m]
 for file in os.listdir(data_folder):
     print(file)

@@ -40,6 +40,32 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "rtcl_test",
+    srcs = ["rtcl_test.cc"],
+    deps = [
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",
+        "//rtcl:rtcl_h",
+        "//framework:cccb_trajopt",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "collision_constraint_validation_test",
+    srcs = ["collision_constraint_validation_test.cc"],
+    deps = [
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",        
+        "//rtcl:rtcl_h",
+        "//framework:cccb_trajopt",
+        "@com_google_googletest//:gtest_main",
+        "@nvidia_cuda//:cuda",
+    ],
+)
+
+
 
 cc_test(
     name = "cccb_spline_test",
@@ -67,4 +93,9 @@ cc_test(
         "//rossy_utils:rossy_utils",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+cc_test(
+    name = "siche_test",
+    srcs = ["read_siche_files.cc"],
 )

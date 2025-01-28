@@ -55,7 +55,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     Eigen::VectorXf CPbar = CPvec0;
     float hbar = h0;
     
-    int n_iter(0), max_iter(5);
+    int n_iter(0), max_iter(3);
     timer.printElapsedMiliSec("opt setting = ");
     Eigen::VectorXd x_double;
     while(n_iter++ < max_iter){
@@ -88,6 +88,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
             // float ret = rossy_utils::qpprog(Q, q, -A, -b, x);
         }
         x = x_double.cast<float>();
+        std::cout << "x (dCP) = " << x.transpose() << std::endl; 
         // std::cout<<" I'm here 6 " << std::endl;
 
         // update
@@ -179,6 +180,28 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
     }
 } 
 
+// void CCCBTrajOptSolver::updateQuadCostCoeffs(
+//     const Eigen::VectorXf &CPbar,
+//     Eigen::MatrixXf &Q,
+//     Eigen::VectorXf &q)
+// {
+//     int dim = dim_;
+//     int CPdim = CPbar.size();
+//     int n = (int)(CPdim/dim); // = N-3   
+
+//     // update Hessian only if none
+//     if(Q.rows() == 0){
+//         std::cout <<" dim = " << dim << ", n="<< n  
+//                   <<", CPdim = " << CPdim << std::endl;
+
+//         Q = Eigen::MatrixXf::Zero(CPdim+1, CPdim+1);   
+//         Q.block(0,0,CPdim,CPdim) = Ap_.transpose()*Ap_;
+//         Q(CPdim,CPdim) = 0.001; // just for regulation
+//     }    
+//     q = Eigen::VectorXf::Zero(CPdim+1);
+
+// } 
+
 
 
 void CCCBTrajOptSolver::updateConstraints(const Eigen::VectorXf &CPbar,
@@ -237,7 +260,7 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXf &CPbar,
                                         Eigen::MatrixXf &Ac,
                                         Eigen::VectorXf &ah,
                                         Eigen::VectorXf &b){
-    float dist_relaxed = -0.01;
+    float dist_relaxed = 0.0f; //-0.01;
     Eigen::MatrixXf Actmp, tmp;
     Eigen::VectorXf ahtmp, btmp, btmp1, btmp2;
 
@@ -270,7 +293,7 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXf &CPbar,
         b = rossy_utils::vStack(b, btmp);
 
         // add max CPs dist for each
-        float rmax = 0.1;
+        float rmax = 0.2;
         int Pdim = Ap_.rows();
         tmp = -Ap_;
         Actmp = rossy_utils::vStack(Ap_, tmp);

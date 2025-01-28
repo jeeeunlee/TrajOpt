@@ -60,6 +60,9 @@ pinocchio_repository(version="2.6.10")
 #osg
 load("//rossy_utils/thirdparty-bazel/openSceneGraph:repository.bzl", "osg_repository")
 osg_repository()
+#osqp
+load("//rossy_utils/thirdparty-bazel/osqp:repository.bzl", "osqp_repository")
+osqp_repository()
 # Generate local_config_clang repository and configure clang toolchain.
 load("//rossy_utils/thirdparty-bazel/clang:clang_configure.bzl", "clang_autoconf")
 clang_autoconf(
@@ -95,6 +98,7 @@ new_git_repository(
     tag = "v1.2.11",
     remote = "https://github.com/madler/zlib.git",
 )
+# HiGHs
 http_archive(
     name = "highs",
     sha256 = "5ff96c14ae19592d3568e9ae107624cbaf3409d328fb1a586359f0adf9b34bf7",
