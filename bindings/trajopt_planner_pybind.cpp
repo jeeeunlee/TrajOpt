@@ -33,6 +33,8 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def_readwrite("dqdata", &TRAJ_DATA::dqdata)
       .def_readwrite("xdata", &TRAJ_DATA::xdata)
       .def_readwrite("dxdata", &TRAJ_DATA::dxdata)
+      .def_readwrite("xpath", &TRAJ_DATA::xpath)
+      .def_readwrite("qpath", &TRAJ_DATA::qpath)
       .def_readwrite("period", &TRAJ_DATA::period);
 
   py::class_<PLANNING_COMMAND>(m, "PLANNING_COMMAND")

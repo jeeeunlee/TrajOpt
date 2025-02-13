@@ -18,7 +18,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
                 Eigen::VectorXf& joint_config,
                 std::vector<Eigen::VectorXf> &obstacle_poses,
                 std::vector<Eigen::Vector3f> &obstacle_dimensions){
-        std::cout <<" read info " << std::endl;
+        // std::cout <<" read info " << std::endl;
         std::ostringstream data_path;
         data_path << "/home/jelee/my_ws/TrajOpt/experiment_results";
         data_path << "/d" << folder_num << "/"; 
@@ -56,7 +56,29 @@ class CollisionConstraintValidationTest : public ::testing::Test {
 
         }
         myfile.close();
-    }   
+    }
+
+    
+    template <size_t ARRAY_SIZE>
+    void read_simple_selection(const uint folder_num, 
+                std::array<int, ARRAY_SIZE> &data){
+        std::ostringstream data_path;
+        data_path << "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/simple_selected/simple_selected_";
+        data_path << folder_num << ".txt"; 
+
+        std::ifstream file(data_path.str());
+        if (!file) {
+            std::cerr << "Error: Could not open file " << data_path.str() << std::endl;
+            return;
+        }
+        int value, index = 0;
+        while (file >> value && index < ARRAY_SIZE) {            
+            data[index++] = value;
+        }
+        if (index < ARRAY_SIZE) {
+            std::cerr << "Warning: File contains fewer than " << ARRAY_SIZE << " values." << std::endl;
+        }        
+    }
 
     void update_collision_constraints(){
         // set obstacles
@@ -69,11 +91,11 @@ class CollisionConstraintValidationTest : public ::testing::Test {
 
         // compute collision constraints for single joint configuration
         bool robot_collision_free = rtcl_interface_->checkJointConfigCollisionDistance(joint_config_);
-        rtcl_interface_->loadDebugData(debug_data_);
+        rtcl_interface_->loadDebugDataSingle(debug_data_);
         updateCollisionConstraints(debug_data_);
     }
 
-    void updateCollisionConstraints(const rtcl::CollisionCheckerData& debug_data){        
+    void updateCollisionConstraints(const rtcl::CollisionCheckerDataSingle& debug_data){        
         std::vector<Eigen::VectorXf> ray_dir_projected 
             = *(debug_data.ray_direction_projected);
         Eigen::VectorXf dist_to_hit 
@@ -87,12 +109,12 @@ class CollisionConstraintValidationTest : public ::testing::Test {
         }
 
         selected_collision_constraints_.clear();
-        std::cout << "selected from quickhull = ";
+        // std::cout << "selected from quickhull = ";
         for(auto &ind: selected_indices){
-            std::cout << ind << ", ";
+            // std::cout << ind << ", ";
             selected_collision_constraints_.push_back(collision_constraints_[ind]);
         }        
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
         
     
@@ -107,7 +129,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
         std::vector<Eigen::VectorXf> selected_collision_constraints_;
 
         rtcl::RtclInterface* rtcl_interface_;
-        rtcl::CollisionCheckerData debug_data_;    
+        rtcl::CollisionCheckerDataSingle debug_data_;    
 };
 
 
@@ -235,34 +257,37 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
     read_case(folder_num, joint_config_, obstacle_poses_, obstacle_dimensions_);
 
     // update collision_constraints_, selected_collision_constraints_
-    update_collision_constraints();    
-    
-    std::vector<std::array<float, Dim>> poses_corner;
-    
+    update_collision_constraints();   
     
     const uint num_samples = pow(3,8)-1; // sampling on [-1,0,1] excluding {0,0..0}
-    std::vector<int> result;
-    result.reserve(num_samples);
 
+    std::vector<std::array<float, Dim>> poses_noramlized;   
+    std::vector<int> result;    
     rtcl::Eigen_::VectorXb bool_constraint;
     rtcl::Eigen_::VectorXb bool_selected_constraint;
     rtcl::Eigen_::VectorXb bool_ground_truth;
+
+    poses_noramlized.reserve(num_samples);
+    result.reserve(num_samples);
+    bool_constraint.resize(num_samples);
+    bool_selected_constraint.resize(num_samples);
     bool_ground_truth.resize(num_samples);
-    std::vector<std::array<float, Dim>> poses_noramlized;          
+           
     std::array<int,4> counts = {0,0,0,0};
     std::array<float, 12> alpha_arr = {0.015f, 0.03f, 0.045f, 0.06f, 
         0.075f, 0.09f, 0.105f, 0.12f, 0.135f, 0.15f, 0.165f, 0.18f};
 
     std::cout << "simple selection (Andrew's)"<<std::endl;
     std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
-    std::array<int,16> simple_selected = {808, 538, 1319, 1310, 14479, 7786, 2080, 2078, 
-                    15075, 2450, 2718, 21188, 2738, 5893, 11695, 21774};
+    std::array<int,16> simple_selected = {15691, 22088, 18847, 6187, 22013, 3051, 15693, 3025, 
+                                            6217, 9355, 18851, 22136, 15719, 6266, 18994, 2356};
     std::vector<Eigen::VectorXf> simple_selected_collision_constraints_;
     simple_selected_collision_constraints_.clear();
     for(auto &ind : simple_selected){
         simple_selected_collision_constraints_.push_back(collision_constraints_[ind]);
     }
-    for(auto &alpha: alpha_arr){
+    std::array<float, 6> alpha_arr_new = {0.05f, 0.1f, 0.15f, 0.2f, 0.25f, 0.3f};
+    for(auto &alpha: alpha_arr_new){
         genNormPose<Dim>(poses_noramlized, alpha);
         rtcl::check_constraint(
             bool_constraint,
@@ -286,7 +311,7 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
     std::cout << "quick hull " << std::endl;
     std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
     // quick hull
-    for(auto &alpha: alpha_arr){
+    for(auto &alpha: alpha_arr_new){
         genNormPose<Dim>(poses_noramlized, alpha);
         rtcl::check_constraint(
             bool_constraint,
@@ -310,7 +335,6 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
     // CORNER NORMALIZED    
     // example : rss_RO_result_corner_normalized_0.030000.bin
     std::string result_dir_path = "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/corner_normalized/";    
-    
     std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
     for(auto &alpha: alpha_arr){
         // read Sizhe's result
@@ -336,6 +360,76 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
 
 }
 
+TEST_F(CollisionConstraintValidationTest, QuickhullTest){
+    
+    
+    const uint Dim = 8;
+    const uint num_samples = pow(3,8)-1; // sampling on [-1,0,1] excluding {0,0..0}
 
+    std::vector<std::array<float, Dim>> poses_noramlized;   
+    std::vector<int> result;    
+    rtcl::Eigen_::VectorXb bool_constraint;
+    rtcl::Eigen_::VectorXb bool_selected_constraint;
+    rtcl::Eigen_::VectorXb bool_simple_selected_constraint;
+
+    poses_noramlized.reserve(num_samples);
+    result.reserve(num_samples);
+    bool_constraint.resize(num_samples);
+    bool_selected_constraint.resize(num_samples);
+    bool_simple_selected_constraint.resize(num_samples);
+           
+    std::array<int,4> counts = {0,0,0,0};
+
+    for(uint folder_num(0); folder_num<30; ++folder_num)
+    {
+        // read cases
+        // const uint folder_num = 21;
+        read_case(folder_num, joint_config_, obstacle_poses_, obstacle_dimensions_);
+
+        // update collision_constraints_, selected_collision_constraints_
+        update_collision_constraints();
+
+        // update bool_simple_selected_constraint
+        std::array<int,16> simple_selected;
+        read_simple_selection<16>(folder_num, simple_selected);
+        std::vector<Eigen::VectorXf> simple_selected_collision_constraints_;
+        simple_selected_collision_constraints_.clear();
+        for(auto &ind : simple_selected){
+            simple_selected_collision_constraints_.push_back(collision_constraints_[ind]);
+        }
+
+        std::cout << "folder_num \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
+        // quick hull
+        float alpha = 0.1f;
+        genNormPose<Dim>(poses_noramlized, alpha);
+        rtcl::check_constraint(
+            bool_constraint,
+            poses_noramlized,
+            collision_constraints_);
+        rtcl::check_constraint(
+            bool_selected_constraint,
+            poses_noramlized,
+            selected_collision_constraints_);
+        rtcl::count_booleans(counts,
+            bool_selected_constraint,
+            bool_constraint );
+
+        std::cout << folder_num << "\t\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
+                << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;
+
+        rtcl::check_constraint(
+            bool_simple_selected_constraint,
+            poses_noramlized,
+            simple_selected_collision_constraints_);
+        rtcl::count_booleans(counts,
+            bool_simple_selected_constraint,
+            bool_constraint );
+
+        std::cout << folder_num << "\t\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
+                << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;
+        
+    }
+
+}
 
 

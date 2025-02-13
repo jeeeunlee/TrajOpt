@@ -11,7 +11,8 @@ class ObstacleManager;
 
 // CCCB-spline Trajectory planner
 class CCCBTrajOptPlanner: public Planner{
-  protected:    
+  protected:
+    RobotSystem<float>* robot_planner_;
     int link_idx_;
     int n_dof_;
     // updatable through the interface
@@ -48,6 +49,10 @@ class CCCBTrajOptPlanner: public Planner{
 
     // for check
     void getPlannedResult(SOLUTION * soln);
+    void solveFK(const Eigen::VectorXf &q, 
+                  const Eigen::VectorXf &qdot,
+                  Eigen::VectorXf &x, 
+                  Eigen::VectorXf &xdot);
     
 };
 

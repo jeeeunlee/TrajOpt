@@ -13,6 +13,8 @@ class TRAJ_DATA{
       dqdata.clear();
       xdata.clear();
       dxdata.clear();
+      xpath.clear();
+      qpath.clear();
       period=0.;
       }
     ~TRAJ_DATA(){}
@@ -22,6 +24,8 @@ class TRAJ_DATA{
     std::vector< Eigen::VectorXf > dqdata;
     std::vector< Eigen::VectorXf > xdata;
     std::vector< Eigen::VectorXf > dxdata;
+    std::vector< Eigen::VectorXf > xpath; // initial path
+    std::vector< Eigen::VectorXf > qpath;
     double period;
 };
 

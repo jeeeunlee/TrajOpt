@@ -1,7 +1,7 @@
 #include "framework/cccb_trajopt/cccb_trajopt_solver.hpp"
 #include "framework/cccb_trajopt/cccb_traj_manager.hpp"
-#include "framework/cccb_trajopt/no_obstacle_manager.hpp"
 #include "framework/cccb_trajopt/rtcl_obstacle_manager.hpp"
+#include "framework/cccb_trajopt/no_obstacle_manager.hpp"
 #include "rossy_utils/solvers/lp_solver.hpp"
 #include "rossy_utils/solvers/qp_solver.hpp"
 #include "rossy_utils/math/math_utilities.hpp"
@@ -18,7 +18,12 @@ CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj,
 
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     // std::cout<<" CCCBTrajOptSolver::solve " <<std::endl;
-    Clock timer;
+    // std::cout << "vlimit = " << planning_cmd->max_joint_speed.transpose() << std::endl;
+    // std::cout << "alimit = " << planning_cmd->max_joint_acceleration.transpose() << std::endl;
+    // std::cout << "jlimit = " << planning_cmd->max_joint_jerk.transpose() << std::endl;
+    Clock timer, timer2;
+    timer2.start();
+
     timer.start();
     /* 1. initialize traj */
     // get initial CPs to track given path and h0 that satisfies constraints
@@ -41,13 +46,13 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     // min c'*x    subject to:   A*x <= b
     // max (delh) = min (-delh) subject to [Ac, ah]*[delCP;delh] <= b
     int CPdim = CPvec0.size(); // dim*(N-3)    
+    int N = CPvars0.cols() + 3;
     Eigen::MatrixXf A, Ac; 
     Eigen::VectorXf x, ah, b;
     Eigen::VectorXf c = Eigen::VectorXf::Zero(CPdim+1);
     c(CPdim) = -1.;
 
     // ADDED for QP: 0.5*x'*Q*x + q'*x 
-    int Nf = planning_cmd->joint_path.size();
     Eigen::VectorXf q = Eigen::VectorXf::Zero(0); // CPdim+1
     Eigen::MatrixXf Q = Eigen::MatrixXf::Zero(0, 0); // CPdim+1, CPdim+1  
 
@@ -55,7 +60,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     Eigen::VectorXf CPbar = CPvec0;
     float hbar = h0;
     
-    int n_iter(0), max_iter(3);
+    int n_iter(0), max_iter(5);
     timer.printElapsedMiliSec("opt setting = ");
     Eigen::VectorXd x_double;
     while(n_iter++ < max_iter){
@@ -71,37 +76,35 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         A << Ac, ah;
         
         // solve problem
-        if(alpha_ < 0)
-            double ret = rossy_utils::linprog(c.cast<double>(), 
-                                            A.cast<double>(), 
-                                            b.cast<double>(), 
-                                            x_double);
-        else{
-            updateQuadCostCoeffs(CPbar, Q, q);
-            q += alpha_*c;
-            double ret = rossy_utils::qpprogHiGHS(
-                Q.cast<double>(), 
-                q.cast<double>(), 
+
+        if(alpha_ < 0){
+            double ret = rossy_utils::linprog(
+                c.cast<double>(), 
                 A.cast<double>(), 
                 b.cast<double>(), 
                 x_double);
-            // float ret = rossy_utils::qpprog(Q, q, -A, -b, x);
+            x = x_double.cast<float>();
+        }            
+        else{
+            updateQuadCostCoeffs(CPbar, Q, q);
+            q += alpha_*c;
+            timer.printElapsedMiliSec("updateQuadCostCoeffs = ");
+            float retf = rossy_utils::qpprogOSQP(
+                Q, q, A, b, x);            
+            timer.printElapsedMiliSec("qpprogOSQP = ");
         }
-        x = x_double.cast<float>();
-        std::cout << "x (dCP) = " << x.transpose() << std::endl; 
+        // Eigen::Map<Eigen::MatrixXf> xmat(x.data(), dim_, x.size()/dim_);
+        // std::cout << "x (dCP) = " << xmat.transpose() << std::endl; 
         // std::cout<<" I'm here 6 " << std::endl;
 
         // update
         CPvec = CPbar + x.segment(0,CPdim);
         h = getMinH(CPvec, planning_cmd);
-        timer.printElapsedMiliSec("solve QP = ");
 
         // check terminate conditions
         if(h>hbar){
-            std::cout<<"???? n_iter ["<<n_iter<<"], h="<<h<<std::endl;
+            std::cout<<"## n_iter ["<<n_iter<<"], h="<< h << "=>" << N*h << std::endl;
             std::cout<<"???? h increased from" << hbar <<" to " << h << std::endl;
-            CPbar = CPvec;
-            hbar = h;
             break;
         }
         else if((hbar-h)<1e-3){ // (CPbar-CPvec).norm()<1e-3
@@ -111,7 +114,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         }
         else // (h<hbar)
         {
-            std::cout<<"n_iter ["<<n_iter<<"], h="<<h<<std::endl;
+            std::cout<<"## n_iter ["<<n_iter<<"], h="<<h << "=>" << N*h <<std::endl;
             CPbar = CPvec;
             hbar = h;
         }
@@ -125,6 +128,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         CPvars.push_back(CPbar.segment(i*dim_, dim_));
     cccb_traj_->setBSpline(pi_,pf_,CPvars);
     cccb_traj_->setTimeDuration(hbar);
+    timer2.printElapsedMiliSec("// solve trajopt = ");
     
     // checkSplinePrint();
     // TODO : check soln exist later
@@ -141,7 +145,7 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
     int n = (int)(CPdim/dim); // = N-3   
 
     // update Hessian only if none
-    std::cout<<" dim = " << dim << ", n="<< n  << ", CPdim = " << CPdim << std::endl;
+    // std::cout<<" dim = " << dim << ", n="<< n  << ", CPdim = " << CPdim << std::endl;
     if(Q.rows() == 0){
         Q = Eigen::MatrixXf::Zero(CPdim+1, CPdim+1);
 
@@ -159,7 +163,7 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
         // std::cout<<"Qx = "<<std::endl;
         // std::cout<< Qx << std::endl;        
         Q.block(0,0,CPdim,CPdim) = Qx;
-        // Q(CPdim,CPdim) = 0.001; // just for regulation
+        Q(CPdim,CPdim) = 0.001; // just for regulation
     }    
     // std::cout<<"Q = "<<std::endl;
     // std::cout<< Q << std::endl;
@@ -390,8 +394,8 @@ float CCCBTrajOptSolver::getMinH(const Eigen::VectorXf &CPvec,
     float h = std::max(hv1, std::sqrt(ha2));
     h = std::max(h, std::pow(hj3,1.f/3.f));
 
-    std::cout<<" CCCBTrajOptSolver::getMinH:  h = " << h << ", hv=" << 
-    hv1 << ", ha=" << std::sqrt(ha2) << ", hj=" << std::pow(hj3,1.f/3.f) << std::endl;
+    // std::cout<<" CCCBTrajOptSolver::getMinH:  h = " << h << ", hv=" << 
+    // hv1 << ", ha=" << std::sqrt(ha2) << ", hj=" << std::pow(hj3,1.f/3.f) << std::endl;
     return h;
 }
 

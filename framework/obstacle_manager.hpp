@@ -17,13 +17,13 @@ class ObstacleManager{
             obstacles_.clear();
             for (auto &obs: obstacles){
                 // check
-                obs.printInfo();
+                // obs.printInfo();
                 obstacles_.push_back(obs);        
             }
             obstacles_updated_ = true;
         };
         void setGrippedBox(const GRIPPED_BOX &gripped_box){
-            gripped_box.printInfo();
+            // gripped_box.printInfo();
             gripped_box_ = gripped_box;
             gripped_box_updated_ = true;
         }

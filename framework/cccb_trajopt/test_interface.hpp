@@ -51,6 +51,10 @@ class TestInterface : public EnvInterface {
                            TRAJ_DATA* traj_data);
 
       void getPlannedResult(SOLUTION * soln);
+      void solveFK(const Eigen::VectorXf &q, 
+                  const Eigen::VectorXf &qdot,
+                  Eigen::VectorXf &x, 
+                  Eigen::VectorXf &xdot);
 
 
    private:

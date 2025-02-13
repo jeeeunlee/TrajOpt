@@ -59,11 +59,13 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
     std::cout << plancmd->gripped_box.dimension.transpose() << std::endl;
     infc->updateAlpha(10);
     infc->doPlanning(plancmd);
-
-    SOLUTION* imp_soln = new SOLUTION();
-
-    infc->getPlannedResult(imp_soln);
     double tstep = 0.05;
+    infc->getPlannedTrajectory(tstep, traj_data);
+
+    std::cout<< " ---------------- " << std::endl;
+    infc->doPlanning(plancmd);
+    SOLUTION* imp_soln = new SOLUTION();
+    infc->getPlannedResult(imp_soln);
     infc->getPlannedTrajectory(tstep, traj_data);
 
     // print results

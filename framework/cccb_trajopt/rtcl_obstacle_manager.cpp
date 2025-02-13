@@ -51,31 +51,41 @@ void RtclObstacleManager::updateObstacleCoeff(
     }
     // localtimer.printElapsedMiliSec(" set obstacles = ");
 
-    if(obstacles_.size()>0)
+    if(obstacles_.size()>0 && joint_configs.size()>0)
     {
         // update U and d
-        bool robot_collision_free = true;        
-        Eigen::MatrixXf Ut;
-        Eigen::VectorXf dt;
-        for (auto &q : joint_configs){
-            const uint dim{q.size()};
-            // std::cout << " start checkJointConfigCollisionDistance " << std::endl;
-            robot_collision_free = rtcl_interface_->checkJointConfigCollisionDistance(q);
-            // localtimer.printElapsedMiliSec(" rtcl colission checker = ");
+        bool robot_collision_free = true;
+
+        robot_collision_free = rtcl_interface_->checkJointConfigsCollisionDistance(joint_configs);
+        const uint num_joint_configs{joint_configs.size()};
+        const uint dim{joint_configs[0].size()};
+        
+        rtcl::CollisionCheckerData debug_data;
+        if(rtcl_interface_->loadDebugData(debug_data)){
+            // rtcl_interface_->saveDebugData(debug_data, q);                
+            updateJointConfigsCoeff(&debug_data, num_joint_configs, dim, U, d);                
+        }  
+        
+
+        // for (auto &q : joint_configs){
+        //     const uint dim{q.size()};
+        //     // std::cout << " start checkJointConfigCollisionDistance " << std::endl;
+        //     robot_collision_free = rtcl_interface_->checkJointConfigCollisionDistance(q);
+        //     // localtimer.printElapsedMiliSec(" rtcl colission checker = ");
             
-            rtcl::CollisionCheckerData debug_data;
-            Ut = Eigen::MatrixXf::Zero(0, 0);
-            dt = Eigen::VectorXf::Zero(0);
-            if(rtcl_interface_->loadDebugData(debug_data)){
-                // rtcl_interface_->saveDebugData(debug_data, q);                
-                updateSingleJointCoeff(&debug_data, dim, Ut, dt);                
-            }            
-            // successfully loaded debug data from rtcl            
-            U = rossy_utils::dStack(U, Ut);
-            d = rossy_utils::vStack(d, dt);
-            // localtimer.printElapsedMiliSec(" building constraints = ");
-        }
-        std::cout << " robot_collision_free = " << robot_collision_free << std::endl;
+        //     rtcl::CollisionCheckerData debug_data;
+        //     Ut = Eigen::MatrixXf::Zero(0, 0);
+        //     dt = Eigen::VectorXf::Zero(0);
+        //     if(rtcl_interface_->loadDebugData(debug_data)){
+        //         // rtcl_interface_->saveDebugData(debug_data, q);                
+        //         updateSingleJointCoeff(&debug_data, dim, Ut, dt);                
+        //     }            
+        //     // successfully loaded debug data from rtcl            
+        //     U = rossy_utils::dStack(U, Ut);
+        //     d = rossy_utils::vStack(d, dt);
+        //     // localtimer.printElapsedMiliSec(" building constraints = ");
+        // }
+        // std::cout << " robot_collision_free = " << robot_collision_free << std::endl;
     }
 }
 
@@ -89,51 +99,46 @@ void RtclObstacleManager::mapObstacleCoeff(
         U, Ap, Actmp);    
 }
 
-void RtclObstacleManager::updateSingleJointCoeff(void* _debug_data,
+void RtclObstacleManager::updateJointConfigsCoeff(void* _debug_data,
+                                                const uint num_joint_configs,
                                                 const uint dim,
-                                                Eigen::MatrixXf& Ut, 
-                                                Eigen::VectorXf& dt){
+                                                Eigen::MatrixXf& U, 
+                                                Eigen::VectorXf& d){
     // 
     rtcl::CollisionCheckerData* debug_data = 
         reinterpret_cast<rtcl::CollisionCheckerData*>(_debug_data);
-    const uint num_constraints = (*debug_data->selected_indices).size();
-    Ut = Eigen::MatrixXf::Zero(num_constraints, dim);
-    dt = Eigen::VectorXf::Zero(num_constraints);
 
-    // select random indices         
-    for(int i(0); i<num_constraints; ++i){
-        auto r_ind = (*debug_data->selected_indices)[i];
-        // Ut.row(i) = (*debug_data.A_coeff)[r_ind];
-        Ut.row(i) = (*debug_data->ray_direction_projected)[r_ind];
-        dt(i) = (*debug_data->robot_points_distance_to_hit)(r_ind);
+    Eigen::MatrixXf Ucols = Eigen::MatrixXf::Zero(0,0);
+    Eigen::VectorXf dcols = Eigen::VectorXf::Zero(0);
+
+    uint ind_offset(0);
+    for(uint ind_joint(0); ind_joint<num_joint_configs; ++ind_joint){
+        const uint num_selected = debug_data->selected_num_per_configs[ind_joint];
+        Eigen::MatrixXf Ut = debug_data->selected_ray_direction_projected.block(ind_offset, 0, num_selected, dim);        
+        Eigen::VectorXf dt = debug_data->selected_distances.segment(ind_offset, num_selected);
+
+        Ucols = rossy_utils::dStack(Ucols, Ut);
+        dcols = rossy_utils::vStack(dcols, dt);
+
+        ind_offset += num_selected;
+        // Ut = Eigen::MatrixXf::Zero(num_constraints, dim);
+        // dt = Eigen::VectorXf::Zero(num_constraints);
     }
     
-}
+    U = rossy_utils::vStack(U, Ucols);
+    d = rossy_utils::vStack(d, dcols);
 
-void RtclObstacleManager::updateRandomSingleJointCoeff(void* _debug_data,
-                                                const uint num_constraints,
-                                                const uint dim,
-                                                Eigen::MatrixXf& Ut, 
-                                                Eigen::VectorXf& dt){
 
-    rtcl::CollisionCheckerData* debug_data = reinterpret_cast<rtcl::CollisionCheckerData*>(_debug_data);
-    Ut = Eigen::MatrixXf::Zero(num_constraints, dim);
-    dt = Eigen::VectorXf::Zero(num_constraints);
-    // chose from the last links
-    const uint num_box_points{(*debug_data->num_of_points_each_link)[dim-1]};
-    uint num_points(0);
-    for(const auto& n : *debug_data->num_of_points_each_link){
-        num_points += n;
-    }
-    uint r_ind = 0;
-    // select random indices         
-    for(int i(0); i<num_constraints; ++i){
-        r_ind = num_points - 1 - (std::rand() % (2*num_box_points));
-        while((*debug_data->robot_points_distance_to_hit)(r_ind) > 0.5){
-            // r_ind = num_points - 1 - (std::rand() % (5*num_box_points));
-            r_ind = std::rand() % num_points;
-        }
-        Ut.row(i) = (*debug_data->ray_direction_projected)[r_ind];            
-        dt(i) = (*debug_data->robot_points_distance_to_hit)(r_ind);        
-    }
+    // const uint num_constraints = (*debug_data->selected_indices).size();
+    // Ut = Eigen::MatrixXf::Zero(num_constraints, dim);
+    // dt = Eigen::VectorXf::Zero(num_constraints);
+
+    // // select random indices         
+    // for(int i(0); i<num_constraints; ++i){
+    //     auto r_ind = (*debug_data->selected_indices)[i];
+    //     // Ut.row(i) = (*debug_data.A_coeff)[r_ind];
+    //     Ut.row(i) = (*debug_data->ray_direction_projected)[r_ind];
+    //     dt(i) = (*debug_data->robot_points_distance_to_hit)(r_ind);
+    // }
+    
 }

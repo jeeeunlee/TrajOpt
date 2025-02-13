@@ -18,6 +18,7 @@ CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem<float>* _robot,
     :Planner(_robot), link_idx_(_link_idx), threshold_pinv_(0.2) {
     rossy_utils::pretty_constructor(1, "CCCBspline Trajectory Optimization Planner");
 
+    robot_planner_ = new RobotSystem(*_robot);
     cccb_traj_ = _cccb_traj;
     obstacle_manager_ = _obstacle_manager;
 
@@ -126,4 +127,14 @@ void CCCBTrajOptPlanner::setAlpha(float alpha)
 void CCCBTrajOptPlanner::getPlannedResult(SOLUTION* soln)
 {
     trajopt_solver_-> getKnotValues(soln);
+}
+
+void CCCBTrajOptPlanner::solveFK(const Eigen::VectorXf &q, 
+                  const Eigen::VectorXf &qdot,
+                  Eigen::VectorXf &x, 
+                  Eigen::VectorXf &xdot){
+    robot_planner_->updateSystem(q,qdot);
+    Eigen::Isometry3f ret = robot_planner_->getBodyNodeIsometry(link_idx_);
+    x = ret.translation();
+    xdot = Eigen::VectorXf::Zero(3);
 }

@@ -60,9 +60,36 @@ pinocchio_repository(version="2.6.10")
 #osg
 load("//rossy_utils/thirdparty-bazel/openSceneGraph:repository.bzl", "osg_repository")
 osg_repository()
-#osqp
-load("//rossy_utils/thirdparty-bazel/osqp:repository.bzl", "osqp_repository")
-osqp_repository()
+# OSQP and its dependencies
+http_archive(
+    name = "com_github_osqp_qdldl",
+    build_file = "//rossy_utils/thirdparty-bazel:com_github_osqp_qdldl/BUILD.oss",
+    sha256 = "631ae65f367859fa1efade1656e4ba22b7da789c06e010cceb8b29656bf65757",
+    strip_prefix = "qdldl-0.1.7",
+    url = "https://github.com/osqp/qdldl/archive/refs/tags/v0.1.7.tar.gz",
+)
+
+http_archive(
+    name = "com_github_osqp_osqp",
+    build_file = "//rossy_utils/thirdparty-bazel:com_github_osqp_osqp/BUILD.oss",
+    sha256 = "a6b4148019001f87489c27232e2bdbac37c94f38fa37c1b4ee11eaa5654756d2",
+    strip_prefix = "osqp-0.6.3",
+    url = "https://github.com/osqp/osqp/archive/refs/tags/v0.6.3.tar.gz",
+)
+# http_archive(
+#     name = "osqp",
+#     build_file = "//rossy_utils/thirdparty-bazel:osqp/BUILD.bazel",
+#     sha256 = "a6b4148019001f87489c27232e2bdbac37c94f38fa37c1b4ee11eaa5654756d2",
+#     strip_prefix = "osqp-0.6.3",
+#     url = "https://github.com/osqp/osqp/archive/refs/tags/v0.6.3.tar.gz",
+# )
+http_archive(
+    name = "com_github_osqp_eigen",
+    build_file = "//rossy_utils/thirdparty-bazel:com_github_osqp_eigen/BUILD.oss",
+    sha256 = "1c7cd4a9cbfdbc1191eedfc554f0f9ed6f6323c830dfea96c9a979fd330155c5",
+    strip_prefix = "osqp-eigen-a752c5e6353cae6176578488a1fa641d3b9cf0b9",
+    url = "https://github.com/robotology/osqp-eigen/archive/a752c5e6353cae6176578488a1fa641d3b9cf0b9.tar.gz",
+)
 # Generate local_config_clang repository and configure clang toolchain.
 load("//rossy_utils/thirdparty-bazel/clang:clang_configure.bzl", "clang_autoconf")
 clang_autoconf(

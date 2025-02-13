@@ -9,10 +9,10 @@ import utils.pybullet_util as pybullet_util
 # robot type
 # from simulator.configs.rl030a import Config
 # from simulator.configs.rl030b import Config
-# from simulator.configs.ra830a import Config
-from simulator.configs.ra830b import Config
+from simulator.configs.ra830a import Config
+# from simulator.configs.ra830b import Config
 
-from simulator.trajopt_interface import TrajoptPlanner
+from simulator.trajopt_interface_old import TrajoptPlanner
 
 
 

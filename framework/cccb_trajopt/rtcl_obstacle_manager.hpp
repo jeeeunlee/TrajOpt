@@ -5,7 +5,6 @@
 
 namespace rtcl{
     class RtclInterface;
-    // using CollisionCheckerData = ConstraintMultibodyRobotSingleJointConfigCollisionChecker::DebugData;
 }
 
 
@@ -24,16 +23,11 @@ class RtclObstacleManager : public ObstacleManager {
             const Eigen::MatrixXf &Ap,
             Eigen::MatrixXf &Actmp);
 
-        void updateSingleJointCoeff(void* _debug_data,
+        void updateJointConfigsCoeff(void* _debug_data,
+                                    const uint num_joint_configs,
                                     const uint dim,
-                                    Eigen::MatrixXf& Ut, 
-                                    Eigen::VectorXf& dt);
-        
-        void updateRandomSingleJointCoeff(void* _debug_data,
-                                        const uint num_constraints,
-                                        const uint dim,
-                                        Eigen::MatrixXf& Ut, 
-                                        Eigen::VectorXf& dt);
+                                    Eigen::MatrixXf& U, 
+                                    Eigen::VectorXf& d);
 
     protected:        
         rtcl::RtclInterface* rtcl_interface_;

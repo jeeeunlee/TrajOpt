@@ -29,7 +29,8 @@ const std::string_view assets_directory)
     // setConfiguration("config/test.yaml");
     // robot_urdf_path_ =  "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
     robot_urdf_path_ = fmt::format("{}/urdfs/{}.urdf", assets_directory, robot_name);
-    link_idx_ = 20; // panda_hand    
+    // link_idx_ = 20; // panda_hand
+    link_idx_ = 18; // wrist_3 for ra830    
     
     // class constructors
     robot_ = new RobotSystem<float>(robot_urdf_path_);    
@@ -98,6 +99,15 @@ void TestInterface::updateAlpha(float alpha)
     ((CCCBTrajOptPlanner*)planner_)->setAlpha(alpha);
 }
 
+        
+void TestInterface::solveFK(const Eigen::VectorXf &q, 
+                  const Eigen::VectorXf &qdot,
+                  Eigen::VectorXf &x, 
+                  Eigen::VectorXf &xdot){
+    ((CCCBTrajOptPlanner*)planner_)->solveFK(q,qdot,x,xdot);
+}
+
+
 void TestInterface::getPlannedTrajectory(const float& time_step,
                                         TRAJ_DATA* traj_data){ 
     std::cout << "getPlannedTrajectory " << std::endl;;
@@ -122,9 +132,18 @@ void TestInterface::getPlannedTrajectory(const float& time_step,
         traj_data->qdata.push_back(q);
         traj_data->dqdata.push_back(qdot);
 
-        // ((CCCBTrajOptPlanner*)planner_)->solveFK(q, qdot, x, xdot);
-        // traj_data->xdata.push_back(x.head(3));
-        // traj_data->dxdata.push_back(xdot.head(3));
+        ((CCCBTrajOptPlanner*)planner_)->solveFK(q, qdot, x, xdot);
+        traj_data->xdata.push_back(x.head(3));
+        traj_data->dxdata.push_back(xdot.head(3));
+    }
+
+    // add initial path
+    traj_data->qpath.clear();
+    traj_data->xpath.clear();
+    for(auto & qi: plan_cmd_->joint_path){
+        traj_data->qpath.push_back(qi);
+        ((CCCBTrajOptPlanner*)planner_)->solveFK(qi, qdot, x, xdot);
+        traj_data->xpath.push_back(x);
     }
 
     // Assume, planned result will be reset
