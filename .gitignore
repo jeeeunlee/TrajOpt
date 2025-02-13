@@ -1,7 +1,7 @@
 # build files / configuration
 bazel-*
 MODULE.bazel*
-*.json
+# *.json
 *.pyc
 *.venv
 
