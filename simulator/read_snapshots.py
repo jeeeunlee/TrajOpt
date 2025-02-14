@@ -2,7 +2,7 @@ import json
 
 def read_case_data(robot = "ra830a",
                        case_num = 1):
-    data_path = f"/home/jelee/my_ws/TrajOpt/test/testdata/8dof-collision/{robot}/case{case_num}.json"
+    data_path = f"/home/dexterity/ambyld/TrajOpt/test/testdata/8dof-collision/{robot}/case{case_num}.json"
     with open(data_path, 'r') as file:
         parsed_data = json.load(file)
     return parsed_data

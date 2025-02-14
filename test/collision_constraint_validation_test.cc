@@ -9,7 +9,7 @@
 class CollisionConstraintValidationTest : public ::testing::Test {
     public:
         CollisionConstraintValidationTest(){
-            std::string assets_dir = "/home/jelee/my_ws/TrajOpt/rtcl/assets";
+            std::string assets_dir = "/home/dexterity/ambyld/TrajOpt/rtcl/assets";
             std::string robot_name = "ra830a";
             rtcl_interface_ = new rtcl::RtclInterface(robot_name, assets_dir);
         }
@@ -20,7 +20,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
                 std::vector<Eigen::Vector3f> &obstacle_dimensions){
         // std::cout <<" read info " << std::endl;
         std::ostringstream data_path;
-        data_path << "/home/jelee/my_ws/TrajOpt/experiment_results";
+        data_path << "/home/dexterity/ambyld/TrajOpt/experiment_results";
         data_path << "/d" << folder_num << "/"; 
 
         std::ifstream myfile;
@@ -63,7 +63,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
     void read_simple_selection(const uint folder_num, 
                 std::array<int, ARRAY_SIZE> &data){
         std::ostringstream data_path;
-        data_path << "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/simple_selected/simple_selected_";
+        data_path << "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/simple_selected/simple_selected_";
         data_path << folder_num << ".txt"; 
 
         std::ifstream file(data_path.str());
@@ -187,9 +187,9 @@ class CollisionConstraintValidationTest : public ::testing::Test {
 //                         selected_collision_constraints_,
 //                         alpha, num_interval);
 
-//     // std::string result_dir_path = "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/pose_21/";?=
-//     std::string result_dir_path = "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/pose_21_0075/";
-//     // std::string result_dir_path = "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/pose_21_005/";
+//     // std::string result_dir_path = "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/pose_21/";?=
+//     std::string result_dir_path = "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/pose_21_0075/";
+//     // std::string result_dir_path = "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/pose_21_005/";
 //     std::cout << "\t\t FF \t FT \t TT \t TF"<<std::endl;
 //     rtcl::collision_constraint_validation(result_dir_path,
 //                         joint_config_, 
@@ -220,7 +220,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
 
 //     // Ground Truth: Sizhe's collision check data
 //     // example : rss_RO_result_corner_0.015000.bin
-//     std::string result_dir_path = "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/corner/";    
+//     std::string result_dir_path = "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/corner/";    
 //     std::array<float, 12> alpha_arr = {0.015f, 0.03f, 0.045f, 0.06f, 
 //         0.075f, 0.09f, 0.105f, 0.12f, 0.135f, 0.15f, 0.165f, 0.18f};
 //     // std::array<float, 1> alpha_arr = {0.015f};
@@ -334,7 +334,7 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
     std::cout << "=================================" << std::endl;
     // CORNER NORMALIZED    
     // example : rss_RO_result_corner_normalized_0.030000.bin
-    std::string result_dir_path = "/home/jelee/my_ws/TrajOpt/test/testdata/rt-result-sizhe/corner_normalized/";    
+    std::string result_dir_path = "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/corner_normalized/";    
     std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
     for(auto &alpha: alpha_arr){
         // read Sizhe's result

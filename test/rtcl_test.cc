@@ -8,7 +8,7 @@ void read_info(const uint folder_num,
                 Eigen::VectorXf& joint_config){
     std::cout <<" read info " << std::endl;
     std::ostringstream data_path;
-    data_path << "/home/jelee/my_ws/TrajOpt/experiment_results";
+    data_path << "/home/dexterity/ambyld/TrajOpt/experiment_results";
     data_path << "/d" << folder_num << "/"; 
 
     std::ifstream myfile;
@@ -48,7 +48,7 @@ void read_info(const uint folder_num,
 
 
 TEST(RTCLTest, AddGrippedBox){
-    std::string assets_dir = "/home/jelee/my_ws/TrajOpt/rtcl/assets";
+    std::string assets_dir = "/home/dexterity/ambyld/TrajOpt/rtcl/assets";
     std::string robot_name = "ra830a";
     rtcl::RtclInterface* rtcl_interface =  new rtcl::RtclInterface(robot_name, assets_dir);
 

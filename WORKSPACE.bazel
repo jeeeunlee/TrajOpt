@@ -22,6 +22,7 @@ http_archive(
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 rules_foreign_cc_dependencies()
 
+
 ############################
 ## Ext. tools
 # GTEST
@@ -133,6 +134,26 @@ http_archive(
     url = "https://github.com/ERGO-Code/HiGHS/archive/v1.7.2/HiGHS-1.7.2.tar.gz",
 )
 
+http_archive(
+    name = "com_github_nelhage_rules_boost",
+    patch_args = ["-p1"],
+    patches = ["//rtcl/third_party/com_github_nelhage_rules_boost:001-fix-issue-470.patch"],
+    sha256 = "178680b0a5093e17a747bfe8860adc7d5c32a9105983c1075478210973d1b083",
+    strip_prefix = "rules_boost-d8f4f9f88b12461b19354dea4df5f9ee78262067",
+    url = "https://github.com/nelhage/rules_boost/archive/d8f4f9f88b12461b19354dea4df5f9ee78262067.tar.gz",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+
+boost_deps()
+
+
+http_archive(
+    name = "com_github_jbeder_yaml_cpp",
+    sha256 = "836da8ce5b6d8a5b25aa1ad0a63b31d4ddd13d8aa176c4d8dbad5ac5ed49e140",
+    strip_prefix = "yaml-cpp-1d8ca1f35eb3a9c9142462b28282a848e5d29a91",
+    url = "https://github.com/jbeder/yaml-cpp/archive/1d8ca1f35eb3a9c9142462b28282a848e5d29a91.tar.gz",
+)
 
 #----------------------------------------------------------#
 #            git submodule: rtcl                           #
@@ -143,11 +164,6 @@ http_archive(
     sha256 = "a5ca2da3e85c311bfa274ce97d8e5532688cf9c69a4c5c17fcbaf925f99642ec",
     strip_prefix = "pinocchio-2.6.16",
     url = "https://github.com/stack-of-tasks/pinocchio/archive/refs/tags/v2.6.16.tar.gz",
-)
-new_local_repository(
-    name = "org_boost_boost",
-    build_file = "//rtcl/third_party/org_boost_boost:BUILD.bazel",
-    path = "/usr",
 )
 
 # @com_github_stack_of_tasks_pinocchio -> @pinocchio
@@ -192,9 +208,9 @@ http_archive(
 http_archive(
     name = "com_github_hpp_fcl",
     build_file = "//rtcl/third_party/com_github_hpp_fcl:BUILD.bazel",
-    sha256 = "2d45c827a7e1234d7a6ad1d64439614988320ab267777a7bab76fa6bd1feb191",
-    strip_prefix = "hpp-fcl-2.2.0",
-    url = "https://github.com/humanoid-path-planner/hpp-fcl/archive/refs/tags/v2.2.0.tar.gz",
+    sha256 = "e88660e130eecce3e09179bd7d464e406af1021e982731f8d0709ebf20bebbee",
+    strip_prefix = "coal-2.2.0",
+    url = "https://github.com/coal-library/coal/archive/refs/tags/v2.2.0.tar.gz",
 )
 http_archive(
     name = "com_github_jrl_umi3218_jrl_cmakemodules",

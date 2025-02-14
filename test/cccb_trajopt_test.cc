@@ -24,7 +24,7 @@ void generate_rand_problem(PLANNING_COMMAND* plancmd){
 
 void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){   
     std::stringstream filenamess;
-    filenamess << "/home/jelee/my_ws/TrajOpt/test/testdata/2d-non-collision/case" << casenum <<".json";
+    filenamess << "/home/dexterity/ambyld/TrajOpt/test/testdata/2d-non-collision/case" << casenum <<".json";
     std::string filename;
     filenamess >> filename;
     std::ifstream fJson(filename);
@@ -53,7 +53,7 @@ void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){
 
 
 TEST(CCCBTrajOptTest, CheckNoColCase){
-    std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
+    std::string panda_urdf = "/home/dexterity/ambyld/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
     NoColTestInterface* infc = new NoColTestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
@@ -90,7 +90,7 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
 }
 
 TEST(CCCBTrajOptTest, CheckNoColCaseQP){
-    std::string panda_urdf = "/home/jelee/my_ws/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
+    std::string panda_urdf = "/home/dexterity/ambyld/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
     NoColTestInterface* infc = new NoColTestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();

@@ -27,7 +27,7 @@ const std::string_view assets_directory)
     // robot_urdf, link_idx_
     // setConfiguration("/etc/opt/dex/truck_rwc_dev/dhc/test.yaml");
     // setConfiguration("config/test.yaml");
-    // robot_urdf_path_ =  "/home/jelee/my_ws/TrajOpt/config/urdf_files/franka_panda.urdf";
+    // robot_urdf_path_ =  "/home/dexterity/ambyld/TrajOpt/config/urdf_files/franka_panda.urdf";
     robot_urdf_path_ = fmt::format("{}/urdfs/{}.urdf", assets_directory, robot_name);
     // link_idx_ = 20; // panda_hand
     link_idx_ = 18; // wrist_3 for ra830    

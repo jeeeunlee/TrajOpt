@@ -169,11 +169,11 @@ TEST(QPSOLVERTEST, testSemiDefinite0 ){
   std::string filename;
   for (HighsInt test_k = 0; test_k < 2; test_k++) {
     if (test_k == 0) {
-      filename = "/home/jelee/my_ws/TrajOpt/test/testdata/HighsInstances/qjh.mps";
+      filename = "/home/dexterity/ambyld/TrajOpt/test/testdata/HighsInstances/qjh.mps";
     } else if (test_k == 1) {
-      filename = "/home/jelee/my_ws/TrajOpt/test/testdata/HighsInstances/qjh_quadobj.mps";
+      filename = "/home/dexterity/ambyld/TrajOpt/test/testdata/HighsInstances/qjh_quadobj.mps";
     } else {
-      filename = "/home/jelee/my_ws/TrajOpt/test/testdata/HighsInstances/qjh_qmatrix.mps";
+      filename = "/home/dexterity/ambyld/TrajOpt/test/testdata/HighsInstances/qjh_qmatrix.mps";
     }
 
     return_status = highs.readModel(filename);
