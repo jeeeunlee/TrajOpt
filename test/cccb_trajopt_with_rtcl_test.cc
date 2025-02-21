@@ -3,6 +3,8 @@
 #include "framework/cccb_trajopt/test_interface.hpp"
 #include "framework/user_command.hpp"
 #include "test/json_utils.h"
+#include "Configuration.h"
+// #include <nvtx3/nvToolsExt.h>
 // json_list_to_eigen, json_listoflist_to_eigenmat, json_listoflist_to_vecofeigen
 
 
@@ -23,7 +25,7 @@ void set_obstacles(const nlohmann::json &j_obs, std::vector<OBSTACLE> &obstacles
 void read_case(PLANNING_COMMAND* plancmd, const std::string_view robotname, int casenum){
     std::cout<<" read_case " << std::endl;
     std::stringstream filenamess;
-    filenamess << "/home/dexterity/ambyld/TrajOpt/test/testdata/8dof-collision/" << robotname << "/case" << casenum <<".json";
+    filenamess << CURRENT_DIR "test/testdata/8dof-collision/" << robotname << "/case" << casenum <<".json";
     std::string filename;
     filenamess >> filename;
     std::cout<<filename.c_str()<<std::endl;
@@ -42,7 +44,8 @@ void read_case(PLANNING_COMMAND* plancmd, const std::string_view robotname, int 
 }
 
 TEST(CCCBTrajOptTest, AddGrippedBox){
-    std::string assets_dir = "/home/dexterity/ambyld/TrajOpt/rtcl/assets";
+    // nvtx3::mark("Hello world!");
+    std::string assets_dir = CURRENT_DIR "rtcl/assets";
     std::string robot_name = "ra830a";
     TestInterface* infc = new TestInterface(robot_name, assets_dir);
 
@@ -77,7 +80,7 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
 }
 
 // TEST(CCCBTrajOptTest, NoGrippedBox){
-//     std::string assets_dir = "/home/dexterity/ambyld/TrajOpt/rtcl/assets";
+//     std::string assets_dir = CURRENT_DIR "rtcl/assets";
 //     std::string robot_name = "ra830a";
 //     TestInterface* infc = new TestInterface(robot_name, assets_dir);
 

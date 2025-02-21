@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-
 // HiGHS is designed to solve linear optimization problems of the form
 //
 // Min (1/2)x^TQx + c^Tx + d subject to L <= Ax <= U; l <= x <= u
@@ -56,6 +55,7 @@
 #include <cassert>
 
 #include "rossy_utils/solvers/qp_solver.hpp"
+#include "Configuration.h"
 
 using std::cout;
 using std::endl;
@@ -169,11 +169,11 @@ TEST(QPSOLVERTEST, testSemiDefinite0 ){
   std::string filename;
   for (HighsInt test_k = 0; test_k < 2; test_k++) {
     if (test_k == 0) {
-      filename = "/home/dexterity/ambyld/TrajOpt/test/testdata/HighsInstances/qjh.mps";
+      filename = CURRENT_DIR "test/testdata/HighsInstances/qjh.mps";
     } else if (test_k == 1) {
-      filename = "/home/dexterity/ambyld/TrajOpt/test/testdata/HighsInstances/qjh_quadobj.mps";
+      filename = CURRENT_DIR "test/testdata/HighsInstances/qjh_quadobj.mps";
     } else {
-      filename = "/home/dexterity/ambyld/TrajOpt/test/testdata/HighsInstances/qjh_qmatrix.mps";
+      filename = CURRENT_DIR "test/testdata/HighsInstances/qjh_qmatrix.mps";
     }
 
     return_status = highs.readModel(filename);

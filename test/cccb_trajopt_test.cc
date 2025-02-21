@@ -3,6 +3,7 @@
 #include "framework/cccb_trajopt/test_interface_nocol.hpp"
 #include "framework/user_command.hpp"
 #include "test/json_utils.h"
+#include "Configuration.h"
 
 void generate_rand_problem(PLANNING_COMMAND* plancmd){
     plancmd->joint_path.clear();
@@ -24,7 +25,7 @@ void generate_rand_problem(PLANNING_COMMAND* plancmd){
 
 void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){   
     std::stringstream filenamess;
-    filenamess << "/home/dexterity/ambyld/TrajOpt/test/testdata/2d-non-collision/case" << casenum <<".json";
+    filenamess << CURRENT_DIR "test/testdata/2d-non-collision/case" << casenum <<".json";
     std::string filename;
     filenamess >> filename;
     std::ifstream fJson(filename);
@@ -53,7 +54,7 @@ void read_case(PLANNING_COMMAND* plancmd, SOLUTION* solution, int casenum){
 
 
 TEST(CCCBTrajOptTest, CheckNoColCase){
-    std::string panda_urdf = "/home/dexterity/ambyld/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
+    std::string panda_urdf = CURRENT_DIR "simulator/configs/urdf_files/franka_panda.urdf";
     NoColTestInterface* infc = new NoColTestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
@@ -90,7 +91,7 @@ TEST(CCCBTrajOptTest, CheckNoColCase){
 }
 
 TEST(CCCBTrajOptTest, CheckNoColCaseQP){
-    std::string panda_urdf = "/home/dexterity/ambyld/TrajOpt/simulator/configs/urdf_files/franka_panda.urdf";
+    std::string panda_urdf = CURRENT_DIR "simulator/configs/urdf_files/franka_panda.urdf";
     NoColTestInterface* infc = new NoColTestInterface(panda_urdf);
 
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();

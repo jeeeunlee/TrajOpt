@@ -137,7 +137,7 @@ http_archive(
 http_archive(
     name = "com_github_nelhage_rules_boost",
     patch_args = ["-p1"],
-    patches = ["//rtcl/third_party/com_github_nelhage_rules_boost:001-fix-issue-470.patch"],
+    patches = ["//third_party:com_github_nelhage_rules_boost/001-fix-issue-470.patch"],
     sha256 = "178680b0a5093e17a747bfe8860adc7d5c32a9105983c1075478210973d1b083",
     strip_prefix = "rules_boost-d8f4f9f88b12461b19354dea4df5f9ee78262067",
     url = "https://github.com/nelhage/rules_boost/archive/d8f4f9f88b12461b19354dea4df5f9ee78262067.tar.gz",
@@ -326,8 +326,22 @@ new_local_repository(
     build_file = "//rtcl/third_party/nvidia_cuda:BUILD.bazel",
     path = "/usr/local/cuda",
 )
-new_local_repository(
-    name = "nvidia_optix",
-    build_file = "//rtcl/third_party/nvidia_optix:BUILD.bazel",
-    path = "/usr/local/include/optix",
+
+# NVIDIA OptiX 7.7.0
+_NVIDIA_OPTIX_SHA = "637dea06ebacc368c99a9a47112cd1ad3a986124"
+
+http_archive(
+    name = "com_gitlab_nvidia_optix",
+    auth_patterns = {"gitlab.com": "Bearer <password>"},
+    build_file = "//rtcl:third_party/com_gitlab_nvidia_optix/BUILD.oss",
+    sha256 = "408471bf164e66f999e8311aba60be8c45069d6606098a8ddc5a528bf1657a46",
+    strip_prefix = "nvidia-optix-{0}-{0}".format(_NVIDIA_OPTIX_SHA),
+    url = "https://gitlab.com/api/v4/projects/60515837/repository/archive.tar.gz?sha={}".format(_NVIDIA_OPTIX_SHA),
+)
+
+git_repository(
+    name = "com_github_nvtx",
+    remote = "https://github.com/NVIDIA/NVTX.git",
+    tag = "v3.1.1-c-cpp",
+    build_file = "//third_party/com_github_nvtx:BUILD.bazel",
 )

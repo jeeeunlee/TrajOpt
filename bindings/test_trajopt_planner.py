@@ -6,7 +6,7 @@ sys.path.append(os.getcwd())
 
 from bindings import trajopt_planner
 
-assets_dir = "/home/dexterity/ambyld/TrajOpt/rtcl/assets"
+assets_dir = os.join(os.getcwd(), "/rtcl/assets")
 robot_name = "ra830a"
 def main():
     # Construct Interface    

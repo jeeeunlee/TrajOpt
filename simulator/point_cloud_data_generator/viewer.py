@@ -46,7 +46,7 @@ def plot_3d_points(points, file_path):
 # Main function
 if __name__ == "__main__":
     # Replace 'points.csv' with the path to your CSV file
-    assets_directory = "/home/dexterity/ambyld/TrajOpt/rtcl/assets"
+    assets_directory = os.join(os.getcwd, "rtcl/assets")
     robot_name = "ra830a"
     point_cloud_resolution = "2.0cm"
     robot_directory = "{}/point_clouds/{}".format(assets_directory, robot_name)

@@ -2,14 +2,14 @@
 
 #include "rtcl/wrapper/rtcl_interface.h"
 #include "framework/user_command.hpp"
+#include "Configuration.h"
 
 void read_info(const uint folder_num, 
                 std::vector<OBSTACLE>& obstacles,
                 Eigen::VectorXf& joint_config){
     std::cout <<" read info " << std::endl;
     std::ostringstream data_path;
-    data_path << "/home/dexterity/ambyld/TrajOpt/experiment_results";
-    data_path << "/d" << folder_num << "/"; 
+    data_path << LOG_DIR "/d" << folder_num << "/"; 
 
     std::ifstream myfile;
     myfile.open(data_path.str() +"joint_config.txt");
@@ -48,7 +48,7 @@ void read_info(const uint folder_num,
 
 
 TEST(RTCLTest, AddGrippedBox){
-    std::string assets_dir = "/home/dexterity/ambyld/TrajOpt/rtcl/assets";
+    std::string assets_dir = CURRENT_DIR "rtcl/assets";
     std::string robot_name = "ra830a";
     rtcl::RtclInterface* rtcl_interface =  new rtcl::RtclInterface(robot_name, assets_dir);
 

@@ -1,0 +1,26 @@
+From dca1ffe401b7a79df1beb46b0808954780051bc4 Mon Sep 17 00:00:00 2001
+From: Alok Priyadarshi <alokp@dexterity.ai>
+Date: Thu, 27 Jul 2023 18:38:19 -0700
+Subject: [PATCH] fix: remove duplicate definition of
+ BOOST_NO_CXX98_FUNCTION_BASE
+
+Fixes #470
+---
+ boost.BUILD | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/boost.BUILD b/boost.BUILD
+index fe25a06..5c34853 100644
+--- a/boost.BUILD
++++ b/boost.BUILD
+@@ -653,7 +653,6 @@ boost_library(
+ 
+ boost_library(
+     name = "container_hash",
+-    defines = ["BOOST_NO_CXX98_FUNCTION_BASE"],
+     deps = [
+         ":assert",
+         ":config",
+-- 
+2.34.1
+

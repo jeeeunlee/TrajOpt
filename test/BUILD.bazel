@@ -37,6 +37,7 @@ cc_test(
         "//rossy_utils:robot_system",
         "//framework:cccb_trajopt",
         "@com_google_googletest//:gtest_main",
+        "@com_github_nvtx//:nvtx",
     ],
 )
 
@@ -91,6 +92,7 @@ cc_test(
     srcs = ["qp_solver_test.cc"],
     deps = [
         "//rossy_utils:rossy_utils",
+        "//:gen_config",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -98,4 +100,7 @@ cc_test(
 cc_test(
     name = "siche_test",
     srcs = ["read_siche_files.cc"],
+    deps = [
+        "//:gen_config",
+    ],
 )

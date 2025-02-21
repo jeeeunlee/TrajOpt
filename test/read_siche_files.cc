@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include "Configuration.h"
+
 
 template <typename T>
 void readBin(const std::string& filename, std::vector<T>& data) {
@@ -30,7 +32,7 @@ void readBin(const std::string& filename, std::vector<T>& data) {
 int main(){
     std::vector<int> result;
     result.reserve(std::pow(2,22));
-    std::string resultDir = "/home/dexterity/ambyld/TrajOpt/test/testdata/rt-result-sizhe/pose_21/"; // CHANGE YOUR DIRECTORY HERE
+    std::string resultDir = CURRENT_DIR "test/testdata/rt-result-sizhe/pose_21/"; // CHANGE YOUR DIRECTORY HERE
     int i = 1;
     readBin(resultDir +  "result_" + std::to_string(i) + ".bin", result);
     int collisionCount = std::count(result.begin(), result.end(), 1);

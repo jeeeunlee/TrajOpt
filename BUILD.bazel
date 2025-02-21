@@ -6,4 +6,16 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+genrule(
+    name = "gen_config_h",
+    outs = ["Configuration.h"],
+    cmd = """
+    echo '#define CURRENT_DIR \"/home/dexterity/TrajOpt/\"' >> $@ 
+    echo '#define LOG_DIR \"/home/dexterity/TrajOpt/experiment_results/\"' >> $@""",
+)
 
+cc_library(
+    name = "gen_config",
+    hdrs = [":gen_config_h"],
+    visibility = ["//visibility:public"],
+)
