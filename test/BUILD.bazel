@@ -42,6 +42,19 @@ cc_test(
 )
 
 cc_test(
+    name = "cccb_trajopt_with_rtcl_furniture_test",
+    srcs = ["cccb_trajopt_with_rtcl_furniture_test.cc"],
+    deps = [
+        "json_utils",
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",
+        "//framework:cccb_trajopt",
+        "@com_google_googletest//:gtest_main",
+        "@com_github_nvtx//:nvtx",
+    ],
+)
+
+cc_test(
     name = "rtcl_test",
     srcs = ["rtcl_test.cc"],
     deps = [
