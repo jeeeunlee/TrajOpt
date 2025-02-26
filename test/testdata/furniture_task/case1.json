@@ -1,0 +1,243 @@
+{
+    "obstacles": {
+        "wallBack": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/wallBack.obj",
+                "name": "wallBack",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Box1": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Box1.obj",
+                "name": "Box1",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Box2": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Box2.obj",
+                "name": "Box2",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "ceiling": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/ceiling.obj",
+                "name": "ceiling",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Chair": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Chair.obj",
+                "name": "Chair",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "ClothRack": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/ClothRack.obj",
+                "name": "ClothRack",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Dragon": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Dragon.obj",
+                "name": "Dragon",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "floor": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/floor.obj",
+                "name": "floor",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Lamp": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Lamp.obj",
+                "name": "Lamp",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Sofa": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Sofa.obj",
+                "name": "Sofa",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "Vase": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/Vase.obj",
+                "name": "Vase",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "wallLeft": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/wallLeft.obj",
+                "name": "wallLeft",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        },
+        "wallRight": {
+            "info": {
+                "data": "./test/testdata/furniture_task/meshes/wallRight.obj",
+                "name": "wallRight",
+                "type": "mesh"
+            },
+            "pose": [
+                0.0,
+                0.0,
+                0.0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    "robot_name": "ra830a",
+    "max_joint_speed": [
+        2.1371,
+        3.2056,
+        2.9269,
+        3.2363,
+        2.8721,
+        5.8177,
+        7.1106,
+        7.1995
+    ],
+    "max_joint_acceleration": [
+        15.0,
+        15.0,
+        15.0,
+        15.0,
+        15.0,
+        15.0,
+        15.0,
+        15.0
+    ],
+    "max_joint_jerk": [
+        500.0,
+        500.0,
+        500.0,
+        500.0,
+        500.0,
+        500.0,
+        500.0,
+        500.0
+    ]
+}
