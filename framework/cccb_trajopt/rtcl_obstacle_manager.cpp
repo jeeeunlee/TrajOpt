@@ -35,9 +35,16 @@ void RtclObstacleManager::updateObstacleCoeff(
 
     // set obstacles
     if(obstacles_updated_) {        
-        std::vector<Eigen::VectorXf> pose_list;
-        std::vector<Eigen::Vector3f> dim_list;
-        for(auto &obs: obstacles_){
+        std::vector<Eigen::VectorXf> pose_list; // box
+        std::vector<Eigen::Vector3f> dim_list; // box
+        std::vector<Eigen::VectorXf> pose_list_mesh; // mesh
+        std::vector<std::string> mesh_path_list; // mesh
+
+        auto box_view = obstacles_ | std::views::filter([](const OBSTACLE &obs) {
+            return obs.type == 0;
+        });
+
+        for(auto &obs: box_view){
             const Eigen::VectorXf pose{obs.pose};
             const Eigen::Vector3f dim{obs.dimension};
             // std::cout << "pose = "<< pose.transpose() << std::endl;
@@ -47,6 +54,19 @@ void RtclObstacleManager::updateObstacleCoeff(
         }
         rtcl_interface_->clearBoxObstacles();
         rtcl_interface_->setBoxObstacles(pose_list, dim_list);
+
+        auto mesh_view = obstacles_ | std::views::filter([](const OBSTACLE &obs) {
+            return obs.type == 1;
+        });
+
+
+        for(auto &obs: mesh_view){
+            pose_list_mesh.push_back(obs.pose);
+            mesh_path_list.push_back(obs.meshPath);
+        }
+        rtcl_interface_->clearMeshObstacles();
+        rtcl_interface_->setMeshObstacles(pose_list_mesh, mesh_path_list);
+
         obstacles_updated_ = false;
     }
     // localtimer.printElapsedMiliSec(" set obstacles = ");
