@@ -15,7 +15,7 @@ class RtclObstacleManager : public ObstacleManager {
         ~RtclObstacleManager(){};
         
         // virtual void setObstacles(const std::vector<OBSTACLE>& obstacles);
-        virtual void updateObstacleCoeff(const std::vector<Eigen::VectorXf> &joint_configs,
+        virtual void computeCollisionConstraints(const std::vector<Eigen::VectorXf> &joint_configs,
                                 Eigen::MatrixXf &U, Eigen::VectorXf &d);
 
         void mapObstacleCoeff(
@@ -23,7 +23,7 @@ class RtclObstacleManager : public ObstacleManager {
             const Eigen::MatrixXf &Ap,
             Eigen::MatrixXf &Actmp);
 
-        void updateJointConfigsCoeff(void* _debug_data,
+        void updateConstraintsCoeff(void* _debug_data,
                                     const uint num_joint_configs,
                                     const uint dim,
                                     Eigen::MatrixXf& U, 

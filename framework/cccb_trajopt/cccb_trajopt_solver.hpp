@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework/user_command.hpp"
+#include <Eigen/Sparse>
 
 // functions on cccb splines
 class ObstacleManager;
@@ -15,20 +16,21 @@ class CCCBTrajOptSolver{
         ~CCCBTrajOptSolver(){ }
         bool solve(PLANNING_COMMAND* planning_cmd);
         float getMinH(const Eigen::VectorXf &CPvec,
-                        PLANNING_COMMAND* planning_cmd);
+                    PLANNING_COMMAND* planning_cmd);
         void updateConstraints(const Eigen::VectorXf &Xbar,
                                 float hbar, 
                                 Eigen::MatrixXf &Ac,
                                 Eigen::VectorXf &ah,
                                 Eigen::VectorXf &b);
+
         void addColConstraints(const Eigen::VectorXf &Xbar,
                                 float hbar,
                                 Eigen::MatrixXf &Ac,
                                 Eigen::VectorXf &ah,
                                 Eigen::VectorXf &b);
 
-        void updateQuadCostCoeffs(const Eigen::VectorXf &CPbar,
-                                Eigen::MatrixXf &Q,
+        void updateQuadCostCoeffs(const Eigen::VectorXf &cp_bar,
+                                Eigen::SparseMatrix<float> &Q_sparse,
                                 Eigen::VectorXf &q);
 
         // for check
@@ -43,21 +45,30 @@ class CCCBTrajOptSolver{
         ObstacleManager* obstacle_manager_;
 
         // solution
-        Eigen::MatrixXf CPVec_;
+        bool initialized_;
+        Eigen::MatrixXf cp_vector_;
         float h_;
 
         // coeff
         void updateCoeffs(PLANNING_COMMAND* planning_cmd, 
                         CCCBTrajManager* cccb_traj);
 
-        Eigen::MatrixXf Ap_;
-        Eigen::MatrixXf Av_;
-        Eigen::MatrixXf Aa_;
-        Eigen::MatrixXf Aj_;
-        Eigen::VectorXf bp_;
-        Eigen::VectorXf bv_;
-        Eigen::VectorXf ba_;
-        Eigen::VectorXf bj_;
+        void updateAsparse(
+            const Eigen::MatrixXf& Ac,
+            const Eigen::VectorXf& ah,
+            Eigen::SparseMatrix<float>& A_sparse);
+        std::vector<Eigen::Triplet<float>> Ac_triplets_;
+        uint n_Ac1_nonzero_;
+
+
+        Eigen::MatrixXf Ap_; // ((N-1)*dim) x ((N-3)*dim)
+        Eigen::MatrixXf Av_; // ((N-1)*dim) x ((N-3)*dim)
+        Eigen::MatrixXf Aa_; // ((N-1)*dim) x ((N-3)*dim)
+        Eigen::MatrixXf Aj_; // (N*dim) x ((N-3)*dim)
+        Eigen::VectorXf bp_; // (N-1)*dim 
+        Eigen::VectorXf bv_; // (N-2)*dim
+        Eigen::VectorXf ba_; // (N-1)*dim
+        Eigen::VectorXf bj_; // (N)*dim 
 
         Eigen::VectorXf pi_;
         Eigen::VectorXf pf_;

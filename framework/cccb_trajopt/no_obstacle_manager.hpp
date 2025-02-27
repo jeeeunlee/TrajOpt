@@ -8,7 +8,7 @@ class NoObstacleManager : public ObstacleManager {
         NoObstacleManager():ObstacleManager(){};
         virtual ~NoObstacleManager(){}
 
-        virtual void updateObstacleCoeff(
+        virtual void computeCollisionConstraints(
             const std::vector<Eigen::VectorXf> &joint_configs,
             Eigen::MatrixXf &U, 
             Eigen::VectorXf &d){ // do nothing

@@ -460,7 +460,12 @@
         "__mutex_base": "cpp",
         "orderingmethods": "cpp",
         "__functional_base": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "rope": "cpp",
+        "slist": "cpp",
+        "cfenv": "cpp",
+        "source_location": "cpp",
+        "target": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true,
     "C_Cpp.errorSquiggles": "disabled"

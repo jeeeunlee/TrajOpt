@@ -13,119 +13,98 @@
 CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj, 
                                     ObstacleManager* _obstacle_manager)
     : cccb_traj_(_cccb_traj), obstacle_manager_(_obstacle_manager){
-    alpha_ = -1.;
+    alpha_ = 50.;
 }
 
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     // std::cout<<" CCCBTrajOptSolver::solve " <<std::endl;
-    // std::cout << "vlimit = " << planning_cmd->max_joint_speed.transpose() << std::endl;
-    // std::cout << "alimit = " << planning_cmd->max_joint_acceleration.transpose() << std::endl;
-    // std::cout << "jlimit = " << planning_cmd->max_joint_jerk.transpose() << std::endl;
     Clock timer, timer2;
-    timer2.start();
+    initialized_ = false;
 
-    timer.start();
     /* 1. initialize traj */
     // get initial CPs to track given path and h0 that satisfies constraints
-    updateCoeffs(planning_cmd, cccb_traj_);    
-    Eigen::MatrixXf CPvars0 = 
-        cccb_traj_->findBSpline(planning_cmd->joint_path);    
-
-    // CPvars = [cp[0], cp[1],...,] : dim x (N-3) matrix
-    // CPvec = [cp[0]; cp[1];...] : dim*(N-3) x 1 vector
-    Eigen::VectorXf CPvec0 = rossy_utils::MatrixtoVector(CPvars0);
-    float h0 = getMinH(CPvec0, planning_cmd);
+    updateCoeffs(planning_cmd, cccb_traj_); 
+    Eigen::MatrixXf cp_variables_0 = cccb_traj_->findBSpline(planning_cmd->joint_path); //  [cp[0], cp[1],...,] : dim x (N-3) matrix
+    Eigen::VectorXf cp_0 = rossy_utils::MatrixtoVector(cp_variables_0); // [cp[0]; cp[1];...] : dim*(N-3) x 1 vector
+    float h0 = getMinH(cp_0, planning_cmd);
 
     timer.printElapsedMiliSec("initialize = ");
 
-    // 2. optimization: find CPvec, h
-    Eigen::VectorXf CPvec;
-    float h;
-    // CPvec = CPbar + delCP, h = hbar - delh
-    // x = [delCP, delh]
+    // 2. optimization: find cp_vector, h
+    // cp_vector = cp_bar + del_cp, h = hbar - delh
+    // x = [del_cp, delh]
     // min c'*x    subject to:   A*x <= b
-    // max (delh) = min (-delh) subject to [Ac, ah]*[delCP;delh] <= b
-    int CPdim = CPvec0.size(); // dim*(N-3)    
-    int N = CPvars0.cols() + 3;
-    Eigen::MatrixXf A, Ac; 
+    // max (delh) = min (-delh) subject to [Ac, ah]*[del_cp;delh] <= b
+    int CPdim = cp_0.size(); // dim*(N-3)
+    int N = cp_variables_0.cols() + 3;
+    Eigen::MatrixXf Ac;
+    Eigen::SparseMatrix<float> A_sparse;
     Eigen::VectorXf x, ah, b;
-    Eigen::VectorXf c = Eigen::VectorXf::Zero(CPdim+1);
-    c(CPdim) = -1.;
 
     // ADDED for QP: 0.5*x'*Q*x + q'*x 
     Eigen::VectorXf q = Eigen::VectorXf::Zero(0); // CPdim+1
-    Eigen::MatrixXf Q = Eigen::MatrixXf::Zero(0, 0); // CPdim+1, CPdim+1  
-
+    // Eigen::MatrixXf Q = Eigen::MatrixXf::Zero(0, 0); // CPdim+1, CPdim+1  
+    Eigen::SparseMatrix<float> Q_sparse; 
     // initialize norminal vars
-    Eigen::VectorXf CPbar = CPvec0;
-    float hbar = h0;
+    Eigen::VectorXf cp_vector, cp_bar = cp_0;
+    float h, hbar = h0;
     
     int n_iter(0), max_iter(5);
     timer.printElapsedMiliSec("opt setting = ");
     Eigen::VectorXd x_double;
     while(n_iter++ < max_iter){
      
-        // update constraints: Ac*delCP + ah*delh <= b
-        updateConstraints(CPbar, hbar, Ac, ah, b);
+        // update constraints: Ac*del_cp + ah*delh <= b
+        updateConstraints(cp_bar, hbar, Ac, ah, b);
         timer.printElapsedMiliSec("updateConstraints = ");
-        addColConstraints(CPbar, hbar, Ac, ah, b);
+        // update collision constraints: 
+        addColConstraints(cp_bar, hbar, Ac, ah, b);
         timer.printElapsedMiliSec("addColConstraints = ");
 
         // set constraints
-        A = Eigen::MatrixXf::Zero(ah.size(), CPdim+1);
-        A << Ac, ah;
+        updateAsparse(Ac,ah,A_sparse);
+        timer.printElapsedMiliSec("updateAsparse = ");
         
         // solve problem
-
-        if(alpha_ < 0){
-            double ret = rossy_utils::linprog(
-                c.cast<double>(), 
-                A.cast<double>(), 
-                b.cast<double>(), 
-                x_double);
-            x = x_double.cast<float>();
-        }            
-        else{
-            updateQuadCostCoeffs(CPbar, Q, q);
-            q += alpha_*c;
-            timer.printElapsedMiliSec("updateQuadCostCoeffs = ");
-            float retf = rossy_utils::qpprogOSQP(
-                Q, q, A, b, x);            
-            timer.printElapsedMiliSec("qpprogOSQP = ");
-        }
+        updateQuadCostCoeffs(cp_bar, Q_sparse, q);
+        timer.printElapsedMiliSec("updateQuadCostCoeffs = ");
+        
+        float retf = rossy_utils::qpprogOSQPSparse(Q_sparse, q, A_sparse, b, x);            
+        timer.printElapsedMiliSec("qpprogOSQP = ");
+        
         // Eigen::Map<Eigen::MatrixXf> xmat(x.data(), dim_, x.size()/dim_);
         // std::cout << "x (dCP) = " << xmat.transpose() << std::endl; 
         // std::cout<<" I'm here 6 " << std::endl;
 
         // update
-        CPvec = CPbar + x.segment(0,CPdim);
-        h = getMinH(CPvec, planning_cmd);
+        cp_vector = cp_bar + x.segment(0,CPdim);
+        h = getMinH(cp_vector, planning_cmd);
 
         // check terminate conditions
         if(h>hbar){
-            std::cout<<"## n_iter ["<<n_iter<<"], h="<< h << "=>" << N*h << std::endl;
-            std::cout<<"???? h increased from" << hbar <<" to " << h << std::endl;
+            std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
+            std::cout<<"[Termination] : h increased from " << hbar <<" to " << h << std::endl;
             break;
         }
-        else if((hbar-h)<1e-3){ // (CPbar-CPvec).norm()<1e-3
-            std::cout << "Termination: h decreased from" << hbar <<" to " << h;
-            std::cout << " at n_iter = " << n_iter << std::endl;
+        else if(N*(hbar-h)<1e-2){ // (cp_bar-cp_vector).norm()<1e-3
+            std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
+            std::cout<<"[Termination] : h decreased from " << hbar <<" to " << h << std::endl;
             break;
         }
         else // (h<hbar)
         {
-            std::cout<<"## n_iter ["<<n_iter<<"], h="<<h << "=>" << N*h <<std::endl;
-            CPbar = CPvec;
+            std::cout<<"@@ n_iter ["<<n_iter<<"], h="<<h << " => " << N*h <<std::endl;
+            cp_bar = cp_vector;
             hbar = h;
         }
-        
+        initialized_ = true;        
     }
-    CPVec_ = CPbar;
+    cp_vector_ = cp_bar;
     h_ = hbar;
 
     std::vector<Eigen::VectorXf> CPvars;
-    for(int i(0); i<CPvec.size()/dim_; ++i)
-        CPvars.push_back(CPbar.segment(i*dim_, dim_));
+    for(int i(0); i<cp_vector.size()/dim_; ++i)
+        CPvars.push_back(cp_bar.segment(i*dim_, dim_));
     cccb_traj_->setBSpline(pi_,pf_,CPvars);
     cccb_traj_->setTimeDuration(hbar);
     timer2.printElapsedMiliSec("// solve trajopt = ");
@@ -136,152 +115,138 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
 }
 
 void CCCBTrajOptSolver::updateQuadCostCoeffs(
-    const Eigen::VectorXf &CPbar,
-    Eigen::MatrixXf &Q,
+    const Eigen::VectorXf &cp_bar,
+    Eigen::SparseMatrix<float> &Q_sparse,
     Eigen::VectorXf &q)
 {
-    int dim = dim_;
-    int CPdim = CPbar.size();
-    int n = (int)(CPdim/dim); // = N-3   
+    int CPdim = cp_bar.size();
+    int n = (int)(CPdim/dim_); // = N-3  
+    
+    // tuning parameters: min (del_h - alpha/gamma)^2
+    // if gamma is too small then Q become ill-conditioned
+    float gamma = 1.f; // regulization term
+    float alpha = 50.f; // weight term
 
     // update Hessian only if none
-    // std::cout<<" dim = " << dim << ", n="<< n  << ", CPdim = " << CPdim << std::endl;
-    if(Q.rows() == 0){
-        Q = Eigen::MatrixXf::Zero(CPdim+1, CPdim+1);
-
-        Eigen::MatrixXf Q1d = Eigen::MatrixXf::Zero(n,n);
-        Q1d.block(0,0,n,n) += 4.*Eigen::MatrixXf::Identity(n,n);
-        Q1d.block(1,0,n-1,n-1) += -2.*Eigen::MatrixXf::Identity(n-1,n-1);
-        Q1d.block(0,1,n-1,n-1) += -2.*Eigen::MatrixXf::Identity(n-1,n-1);
-        // std::cout <<"Q1d = "<<std::endl;
-        // std::cout << Q1d << std::endl;
-        Eigen::MatrixXf Qx = Q1d; // n x n
-        if(dim>1){
-            Eigen::MatrixXf repmat = Eigen::MatrixXf::Identity(dim,dim);
-            Qx = rossy_utils::kroneckerProduct(Q1d, repmat); // dn x dn
+    if( Q_sparse.rows() !=  CPdim+1 ){
+        // Qx = [2*I_d, -I_d, 0, ... 0; 
+        //      -I_d, 2*I_d, -I_d, ...0; 
+        //      0, ... -I_d, 2*I_d, -I_d; 
+        //      0, 0, ... -I_d, 2*I_d] : (CPdim) x (CPdim)
+        // Q = [Qx, 0; 0, gamma] : (CPdim+1) x (CPdim+1) 
+        std::vector<Eigen::Triplet<float>> triplets;
+        triplets.resize((n + 2*(n-1))*dim_ + 1); // Each block is dim_ x dim_
+        int idx(0);
+        for(int i=0; i<CPdim; ++i){
+            // col-major order
+            if(i>dim_){
+                triplets[idx++] = Eigen::Triplet<float>(i-dim_,i,-1.f);
+            }            
+            triplets[idx++] = Eigen::Triplet<float>(i,i,2.f);
+            if(i<CPdim-dim_){
+                triplets[idx++] = Eigen::Triplet<float>(i+dim_,i,-1.f);
+            }
         }
-        // std::cout<<"Qx = "<<std::endl;
-        // std::cout<< Qx << std::endl;        
-        Q.block(0,0,CPdim,CPdim) = Qx;
-        Q(CPdim,CPdim) = 0.001; // just for regulation
-    }    
-    // std::cout<<"Q = "<<std::endl;
-    // std::cout<< Q << std::endl;
-
-    Eigen::VectorXf Cpi0,Cpi,Cpi1;
-    q = Eigen::VectorXf::Zero(CPdim+1);
-    for(int i(0); i<n; ++i)
-    {
-        Cpi = CPbar.segment(i*dim, dim);
-
-        if(i==0){ Cpi0 = pi_;}
-        else {Cpi0 = CPbar.segment((i-1)*dim, dim);}
-        
-        if(i==n-1){ Cpi1 = pf_;}
-        else {Cpi1 = CPbar.segment((i+1)*dim, dim);}
-
-        q.segment(i*dim, dim) = 2.*(- Cpi0 + 2.*Cpi - Cpi1);
+        triplets[(n + 2*(n-1))*dim_] = Eigen::Triplet<float>(CPdim,CPdim,gamma);
+        Q_sparse.resize(CPdim+1, CPdim+1);
+        Q_sparse.setFromTriplets(triplets.begin(), triplets.end());
+        Q_sparse.makeCompressed();
     }
+    // std::cout<< Q_sparse << std::endl;
+
+    
+    q = Eigen::VectorXf::Zero(CPdim+1);
+    q.segment(0, CPdim) = 2.*cp_bar;
+    q.segment(0, dim_) -= pi_;
+    q.segment(dim_, CPdim-dim_) -= cp_bar.segment(0, CPdim-dim_);
+    q.segment(0, CPdim-dim_) -= cp_bar.segment(dim_, CPdim-dim_);       
+    q.segment(CPdim-dim_, dim_) -= pf_;
+    q[CPdim] = - alpha;
+
 } 
 
-// void CCCBTrajOptSolver::updateQuadCostCoeffs(
-//     const Eigen::VectorXf &CPbar,
-//     Eigen::MatrixXf &Q,
-//     Eigen::VectorXf &q)
-// {
-//     int dim = dim_;
-//     int CPdim = CPbar.size();
-//     int n = (int)(CPdim/dim); // = N-3   
+void CCCBTrajOptSolver::updateConstraints(
+        const Eigen::VectorXf &cp_bar,
+        float hbar, 
+        Eigen::MatrixXf &Ac,
+        Eigen::VectorXf &ah,
+        Eigen::VectorXf &b){   
 
-//     // update Hessian only if none
-//     if(Q.rows() == 0){
-//         std::cout <<" dim = " << dim << ", n="<< n  
-//                   <<", CPdim = " << CPdim << std::endl;
+    int CPdim = cp_bar.size(); // (N-3)*dim
+    int dim_vc = Av_.rows();
+    int dim_ac = Aa_.rows();
+    int dim_jc = Aj_.rows();
+    int dim_constr = 2*(dim_vc + dim_ac + dim_jc + 1); // (+,-)
+    // update Ac only if it's first
+    if(!initialized_){
+        Ac = Eigen::MatrixXf::Zero(dim_constr, CPdim);        
+        // vel constr
+        Ac.block(0, 0, dim_vc, CPdim) = Av_;
+        Ac.block(dim_vc, 0, dim_vc, CPdim) = - Av_;
+        // acc constr
+        Ac.block(2*dim_vc, 0, dim_ac, CPdim) = Aa_;      
+        Ac.block(2*dim_vc+dim_ac, 0, dim_ac, CPdim) = - Aa_;
+        // jerk constr
+        Ac.block(2*dim_vc+2*dim_ac, 0, dim_jc, CPdim) = Aj_;      
+        Ac.block(2*dim_vc+2*dim_ac+dim_jc, 0, dim_jc, CPdim) = - Aj_;
+        // h constr
+        // Ac.block(2*dim_vc+2*dim_ac+2*dim_jc, 0, 2, CPdim) = Eigen::MatrixXf::Zero(2, CPdim);
+    }
+    else{
+        Ac = Ac.topRows(dim_constr);
+    }
+    ah = Eigen::VectorXf::Zero(dim_constr);
+    b = Eigen::VectorXf::Zero(dim_constr);
 
-//         Q = Eigen::MatrixXf::Zero(CPdim+1, CPdim+1);   
-//         Q.block(0,0,CPdim,CPdim) = Ap_.transpose()*Ap_;
-//         Q(CPdim,CPdim) = 0.001; // just for regulation
-//     }    
-//     q = Eigen::VectorXf::Zero(CPdim+1);
+     // vel constr 
+    ah.segment(0, dim_vc) = VCrep_;
+    ah.segment(dim_vc, dim_vc) = VCrep_;
+    b.segment(0, dim_vc) = hbar*VCrep_ - Av_*cp_bar - bv_;
+    b.segment(dim_vc, dim_vc) = hbar*VCrep_ + Av_*cp_bar + bv_;
 
-// } 
-
-
-
-void CCCBTrajOptSolver::updateConstraints(const Eigen::VectorXf &CPbar,
-                                        float hbar, 
-                                        Eigen::MatrixXf &Ac,
-                                        Eigen::VectorXf &ah,
-                                        Eigen::VectorXf &b){
-    Eigen::MatrixXf Actmp, tmp;
-    Eigen::VectorXf ahtmp, btmp, btmp1, btmp2;
-    int CPdim = CPbar.size();
-
-    // vel constr
-    tmp = -Av_;
-    Ac = rossy_utils::vStack(Av_, tmp);
-    ah = rossy_utils::vStack(VCrep_, VCrep_);
-    btmp1 = hbar*VCrep_ - Av_*CPbar - bv_;
-    btmp2 = hbar*VCrep_ + Av_*CPbar + bv_;
-    b = rossy_utils::vStack(btmp1, btmp2);
-
-    // acc constr
-    tmp = -Aa_;
-    Actmp = rossy_utils::vStack(Aa_, tmp);
-    ahtmp = 2.*hbar*rossy_utils::vStack(ACrep_, ACrep_);
-    btmp1 = hbar*hbar*ACrep_ - Aa_*CPbar - ba_;
-    btmp2 = hbar*hbar*ACrep_ + Aa_*CPbar + ba_;
-    btmp = rossy_utils::vStack(btmp1, btmp2);
-    Ac = rossy_utils::vStack(Ac, Actmp);
-    ah = rossy_utils::vStack(ah, ahtmp);
-    b = rossy_utils::vStack(b,btmp);
+    // acc constr 
+    ah.segment(2*dim_vc, dim_ac) = 2.*hbar*ACrep_;
+    ah.segment(2*dim_vc+dim_ac, dim_ac) = 2.*hbar*ACrep_;
+    b.segment(2*dim_vc, dim_ac) = hbar*hbar*ACrep_ - Aa_*cp_bar - ba_;
+    b.segment(2*dim_vc+dim_ac, dim_ac) = hbar*hbar*ACrep_ + Aa_*cp_bar + ba_;
 
     // jerk constr
-    tmp = -Aj_;
-    Actmp = rossy_utils::vStack(Aj_, tmp);
-    ahtmp = 3.*hbar*hbar*rossy_utils::vStack(JCrep_, JCrep_);
-    btmp1 = hbar*hbar*hbar*JCrep_ - Aj_*CPbar - bj_;
-    btmp2 = hbar*hbar*hbar*JCrep_ + Aj_*CPbar + bj_;
-    btmp = rossy_utils::vStack(btmp1, btmp2);
-    Ac = rossy_utils::vStack(Ac, Actmp);
-    ah = rossy_utils::vStack(ah, ahtmp);
-    b = rossy_utils::vStack(b,btmp);
+    ah.segment(2*dim_vc+2*dim_ac, dim_jc) = 3.*hbar*hbar*JCrep_;
+    ah.segment(2*dim_vc+2*dim_ac+dim_jc, dim_jc)= 3.*hbar*hbar*JCrep_;
+    b.segment(2*dim_vc+2*dim_ac, dim_jc) = hbar*hbar*hbar*JCrep_ - Aj_*cp_bar - bj_;
+    b.segment(2*dim_vc+2*dim_ac+dim_jc, dim_jc)= hbar*hbar*hbar*JCrep_ + Aj_*cp_bar + bj_;
 
-    // horizon constr
-    Actmp = Eigen::MatrixXf::Zero(2, CPdim);
-    ahtmp = Eigen::VectorXf::Zero(2);
-    ahtmp << -1,1;
-    btmp = Eigen::VectorXf::Zero(2);
-    btmp << 0, hbar;
-    Ac = rossy_utils::vStack(Ac, Actmp);
-    ah = rossy_utils::vStack(ah, ahtmp);
-    b = rossy_utils::vStack(b,btmp);
-
+    // h constr: -delh<0, delh<jbar
+    ah[2*dim_vc+2*dim_ac+2*dim_jc] = -1.f;
+    ah[2*dim_vc+2*dim_ac+2*dim_jc+1] = 1.f;
+    b[2*dim_vc+2*dim_ac+2*dim_jc] = 0.f;
+    b[2*dim_vc+2*dim_ac+2*dim_jc+1] = hbar;
 }
 
-void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXf &CPbar,
-                                        float hbar,
-                                        Eigen::MatrixXf &Ac,
-                                        Eigen::VectorXf &ah,
-                                        Eigen::VectorXf &b){
+void CCCBTrajOptSolver::addColConstraints(
+        const Eigen::VectorXf &cp_bar,
+        float hbar,
+        Eigen::MatrixXf &Ac,
+        Eigen::VectorXf &ah,
+        Eigen::VectorXf &b){
     float dist_relaxed = 0.0f; //-0.01;
     Eigen::MatrixXf Actmp, tmp;
     Eigen::VectorXf ahtmp, btmp, btmp1, btmp2;
 
-    int CPdim = CPbar.size();
+    int CPdim = cp_bar.size();
 
     // knot points
-    std::vector<Eigen::VectorXf> joint_configs;
-    Eigen::VectorXf pVec = Ap_*CPbar + bp_;
-    for(int i(0); i<pVec.size()/dim_; ++i){
-        // std::cout << " knot q =" << pVec.segment(i*dim_,dim_).transpose() << std::endl;
-        joint_configs.push_back(pVec.segment(i*dim_,dim_)) ;
-    }      
+    Eigen::VectorXf pVec = Ap_*cp_bar + bp_;
+    int num_knot_points = pVec.size()/dim_; // N-1
+    std::vector<Eigen::VectorXf> joint_configs(num_knot_points);
+    for(int i(0); i<num_knot_points; ++i){
+        joint_configs[i] = pVec.segment(i*dim_,dim_) ;
+    }
 
     // compute collision constraints U*Δq < d
     Eigen::MatrixXf U = Eigen::MatrixXf::Zero(0,0);
     Eigen::VectorXf d = Eigen::VectorXf::Zero(0);
-    obstacle_manager_->updateObstacleCoeff(joint_configs, U, d);
+    obstacle_manager_->computeCollisionConstraints(joint_configs, U, d);
 
     // std::cout<<"   - obstacle constraint dimension: " << d.size() << std::endl;
     int NObs = U.rows();
@@ -307,30 +272,79 @@ void CCCBTrajOptSolver::addColConstraints(const Eigen::VectorXf &CPbar,
         ah = rossy_utils::vStack(ah, ahtmp);
         b = rossy_utils::vStack(b,btmp);
     }
-
 }
+
+void CCCBTrajOptSolver::updateAsparse(
+        const Eigen::MatrixXf& Ac,
+        const Eigen::VectorXf& ah,
+        Eigen::SparseMatrix<float>& A_sparse){
+    // A = [Ac, ah] 
+    assert(Ac.rows() == ah.size());
+    int dim_constr = 2*(Av_.rows() + Aa_.rows() + Aj_.rows() + 1);    
+    int nr = ah.size();
+    int nc = Ac.cols() + 1;  
+
+    if(!initialized_){        
+        Eigen::SparseMatrix<float>  Ac1_sparse = Ac.topRows(dim_constr).sparseView();
+        Ac1_sparse.makeCompressed();
+        n_Ac1_nonzero_ = Ac1_sparse.nonZeros();
+        Ac_triplets_.resize(n_Ac1_nonzero_);
+        int n_triplet(0);
+        for (int k = 0; k < Ac1_sparse.outerSize(); ++k) {
+            for (Eigen::SparseMatrix<float>::InnerIterator it(Ac1_sparse, k); it; ++it) {
+                Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.row(), it.col(), it.value());
+            }
+        }
+    }           
+
+    Eigen::SparseMatrix<float> Ac2_sparse = Ac.bottomRows(nr-dim_constr).sparseView();    
+    Eigen::SparseVector<float> ah_sparse = ah.sparseView();    
+    Ac2_sparse.makeCompressed();
+    
+    Ac_triplets_.resize(n_Ac1_nonzero_ + Ac2_sparse.nonZeros() + ah_sparse.nonZeros());
+    int n_triplet(n_Ac1_nonzero_);    
+    for (int k = 0; k < Ac2_sparse.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<float>::InnerIterator it(Ac2_sparse, k); it; ++it) {
+            Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.row()+dim_constr, it.col(), it.value());
+        }
+    }
+    for (Eigen::SparseVector<float>::InnerIterator it(ah_sparse); it; ++it) {
+        Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.index(), nc-1, it.value());
+    }
+    A_sparse.resize(nr, nc);
+    A_sparse.setFromTriplets(Ac_triplets_.begin(), Ac_triplets_.end());
+    A_sparse.makeCompressed();
+    
+    // original
+    // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(Ac.rows(), Ac.cols()+1);
+    // A.leftCols(Ac.cols()) = Ac;
+    // A.col(A.cols()-1) = ah;
+    // A_sparse = A.sparseView();
+    // A_sparse.makeCompressed();
+}
+
 
 void CCCBTrajOptSolver::getKnotValues(SOLUTION * soln){
     soln->h = h_;
-    Eigen::VectorXf tmp = Ap_*CPVec_ + bp_;
+    Eigen::VectorXf tmp = Ap_*cp_vector_ + bp_;
     // Eigen::MatrixXf p = rossy_utils::VectortoMatrix(tmp,2);
     soln->path.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
         soln->path.push_back( tmp.segment(i*dim_,dim_) );
 
-    tmp = (Av_*CPVec_ + bv_)/h_;
+    tmp = (Av_*cp_vector_ + bv_)/h_;
     // Eigen::MatrixXf v = rossy_utils::VectortoMatrix(tmp,2);
     soln->velocity.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
         soln->velocity.push_back( tmp.segment(i*dim_,dim_) );
 
-    tmp = (Aa_*CPVec_ + ba_)/h_/h_;
+    tmp = (Aa_*cp_vector_ + ba_)/h_/h_;
     // Eigen::MatrixXf a = rossy_utils::VectortoMatrix(tmp,2);
     soln->acceleration.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
         soln->acceleration.push_back( tmp.segment(i*dim_,dim_) );
 
-    tmp = (Aj_*CPVec_ + bj_)/h_/h_/h_;
+    tmp = (Aj_*cp_vector_ + bj_)/h_/h_/h_;
     // Eigen::MatrixXf j = rossy_utils::VectortoMatrix(tmp,2);
     soln->jerk.clear();
     for(int i(0); i<tmp.size()/dim_; ++i)
@@ -369,16 +383,16 @@ void CCCBTrajOptSolver::updateCoeffs(PLANNING_COMMAND* planning_cmd,
 }
 
 
-float CCCBTrajOptSolver::getMinH(const Eigen::VectorXf &CPvec,
+float CCCBTrajOptSolver::getMinH(const Eigen::VectorXf &cp_vector,
                                 PLANNING_COMMAND* planning_cmd){
     // vel*h = Av*CP + bv : dim*(N-2)
-    Eigen::VectorXf velh = Av_ * CPvec + bv_;
+    Eigen::VectorXf velh = Av_ * cp_vector + bv_;
     
     // acc*h*h = Aa*CP + ba : dim*(N-1)
-    Eigen::VectorXf acch2 = Aa_ * CPvec + ba_;
+    Eigen::VectorXf acch2 = Aa_ * cp_vector + ba_;
 
     // jerk*h*h*h = Aj*CP + bj : dim*N
-    Eigen::VectorXf jerkh3 = Aj_ * CPvec + bj_;
+    Eigen::VectorXf jerkh3 = Aj_ * cp_vector + bj_;
 
     // get optimal h that satisfies VC,AC,JC: dim*1
     Eigen::VectorXf hvec = rossy_utils::elementWiseDivisionExt(

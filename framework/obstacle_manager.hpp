@@ -27,7 +27,7 @@ class ObstacleManager{
             gripped_box_ = gripped_box;
             gripped_box_updated_ = true;
         }
-        virtual void updateObstacleCoeff(
+        virtual void computeCollisionConstraints(
             const std::vector<Eigen::VectorXf> &joint_configs,
             Eigen::MatrixXf &U, 
             Eigen::VectorXf &d) = 0;
