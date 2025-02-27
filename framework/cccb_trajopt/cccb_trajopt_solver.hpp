@@ -62,7 +62,7 @@ class CCCBTrajOptSolver{
 
 
         Eigen::MatrixXf Ap_; // ((N-1)*dim) x ((N-3)*dim)
-        Eigen::MatrixXf Av_; // ((N-1)*dim) x ((N-3)*dim)
+        Eigen::MatrixXf Av_; // ((N-2)*dim) x ((N-3)*dim)
         Eigen::MatrixXf Aa_; // ((N-1)*dim) x ((N-3)*dim)
         Eigen::MatrixXf Aj_; // (N*dim) x ((N-3)*dim)
         Eigen::VectorXf bp_; // (N-1)*dim 

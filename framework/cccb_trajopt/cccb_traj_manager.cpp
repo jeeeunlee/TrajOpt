@@ -115,7 +115,7 @@ Eigen::MatrixXf CCCBTrajManager::computeAv2(int N, int dim){
     Eigen::MatrixXf Av1d = Eigen::MatrixXf::Zero(N-2,N-3);
     Av1d.block(0,0,N-3,N-3) += Eigen::MatrixXf::Identity(N-3,N-3);
     Av1d.block(1,0,N-3,N-3) += -Eigen::MatrixXf::Identity(N-3,N-3);    
-    // stack dim: Av = ((N-1)*dim) x ((N-3)*dim)
+    // stack dim: Av = ((N-2)*dim) x ((N-3)*dim)
     return stack1dMatDim(dim, Av1d);
 }
 
