@@ -14,17 +14,19 @@ void set_obstacles(const nlohmann::json &j_obs, std::vector<OBSTACLE> &obstacles
     OBSTACLE obstacle;
     for (auto& [key, val] : j_obs.items())
     {
-        // std::cout << "key: " << key << ", value:" << val << '\n';
-        if (val["type"] == "box"){
+        std::cout << "key: " << key << ", value:" << val << '\n';
+        if (val["info"]["type"] == "box"){
             obstacle.pose = json_list_to_eigen(val["pose"]);
             obstacle.dimension = json_list_to_eigen(val["info"]["data"]);
-        } else if (val["type"] == "mesh"){
+            obstacle.type = 0;
+        } else if (val["info"]["type"] == "mesh"){
             obstacle.pose = json_list_to_eigen(val["pose"]);
             std::string mesh_path = val["info"]["data"];
             // Append the prefix to the mesh path
             std::string assets_dir = CURRENT_DIR "test/testdata/furniture_task";
             std::string full_mesh_path = assets_dir + mesh_path;
             obstacle.meshPath = full_mesh_path;
+            obstacle.type = 1;
         }
         obstacles.push_back(obstacle);
     }
