@@ -266,9 +266,9 @@ http_archive(
 http_archive(
     name = "com_github_sewenew_redis_plus_plus",
     build_file = "//rtcl/third_party/com_github_sewenew_redis_plus_plus:BUILD.bazel",
-    sha256 = "89cb83b0a23ac5825300c301814eab74aa3cdcfcd12e87d443c2692e367768ba",
-    strip_prefix = "redis-plus-plus-1.3.7",
-    url = "https://github.com/sewenew/redis-plus-plus/archive/refs/tags/1.3.7.tar.gz",
+    sha256 = "bb4990eed60d3654cd6902b9e67b3ab43e52557e84315560660b0c9e64b6ff77",
+    strip_prefix = "redis-plus-plus-1.3.11",
+    url = "https://github.com/sewenew/redis-plus-plus/archive/refs/tags/1.3.11.tar.gz",
 )
 http_archive(
     name = "com_github_redis_hiredis",
@@ -327,21 +327,27 @@ new_local_repository(
     path = "/usr/local/cuda",
 )
 
-# NVIDIA OptiX 7.7.0
-_NVIDIA_OPTIX_SHA = "637dea06ebacc368c99a9a47112cd1ad3a986124"
+# # NVIDIA OptiX 7.7.0
+# _NVIDIA_OPTIX_SHA = "637dea06ebacc368c99a9a47112cd1ad3a986124"
 
-http_archive(
+# http_archive(
+#     name = "com_gitlab_nvidia_optix",
+#     auth_patterns = {"gitlab.com": "Bearer <password>"},
+#     build_file = "//rtcl:third_party/com_gitlab_nvidia_optix/BUILD.oss",
+#     sha256 = "408471bf164e66f999e8311aba60be8c45069d6606098a8ddc5a528bf1657a46",
+#     strip_prefix = "nvidia-optix-{0}-{0}".format(_NVIDIA_OPTIX_SHA),
+#     url = "https://gitlab.com/api/v4/projects/60515837/repository/archive.tar.gz?sha={}".format(_NVIDIA_OPTIX_SHA),
+# )
+
+# git_repository(
+#     name = "com_github_nvtx",
+#     remote = "https://github.com/NVIDIA/NVTX.git",
+#     tag = "v3.1.1-c-cpp",
+#     build_file = "//third_party/com_github_nvtx:BUILD.bazel",
+# )
+
+new_local_repository(
     name = "com_gitlab_nvidia_optix",
-    auth_patterns = {"gitlab.com": "Bearer <password>"},
     build_file = "//rtcl:third_party/com_gitlab_nvidia_optix/BUILD.oss",
-    sha256 = "408471bf164e66f999e8311aba60be8c45069d6606098a8ddc5a528bf1657a46",
-    strip_prefix = "nvidia-optix-{0}-{0}".format(_NVIDIA_OPTIX_SHA),
-    url = "https://gitlab.com/api/v4/projects/60515837/repository/archive.tar.gz?sha={}".format(_NVIDIA_OPTIX_SHA),
-)
-
-git_repository(
-    name = "com_github_nvtx",
-    remote = "https://github.com/NVIDIA/NVTX.git",
-    tag = "v3.1.1-c-cpp",
-    build_file = "//third_party/com_github_nvtx:BUILD.bazel",
+    path = "/usr/local/include/optix",
 )
