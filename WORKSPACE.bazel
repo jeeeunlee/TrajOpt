@@ -327,27 +327,21 @@ new_local_repository(
     path = "/usr/local/cuda",
 )
 
-# # NVIDIA OptiX 7.7.0
-# _NVIDIA_OPTIX_SHA = "637dea06ebacc368c99a9a47112cd1ad3a986124"
+# NVIDIA OptiX 7.7.0
+_NVIDIA_OPTIX_SHA = "637dea06ebacc368c99a9a47112cd1ad3a986124"
 
-# http_archive(
-#     name = "com_gitlab_nvidia_optix",
-#     auth_patterns = {"gitlab.com": "Bearer <password>"},
-#     build_file = "//rtcl:third_party/com_gitlab_nvidia_optix/BUILD.oss",
-#     sha256 = "408471bf164e66f999e8311aba60be8c45069d6606098a8ddc5a528bf1657a46",
-#     strip_prefix = "nvidia-optix-{0}-{0}".format(_NVIDIA_OPTIX_SHA),
-#     url = "https://gitlab.com/api/v4/projects/60515837/repository/archive.tar.gz?sha={}".format(_NVIDIA_OPTIX_SHA),
-# )
-
-# git_repository(
-#     name = "com_github_nvtx",
-#     remote = "https://github.com/NVIDIA/NVTX.git",
-#     tag = "v3.1.1-c-cpp",
-#     build_file = "//third_party/com_github_nvtx:BUILD.bazel",
-# )
-
-new_local_repository(
+http_archive(
     name = "com_gitlab_nvidia_optix",
+    auth_patterns = {"gitlab.com": "Bearer <password>"},
     build_file = "//rtcl:third_party/com_gitlab_nvidia_optix/BUILD.oss",
-    path = "/usr/local/include/optix",
+    sha256 = "408471bf164e66f999e8311aba60be8c45069d6606098a8ddc5a528bf1657a46",
+    strip_prefix = "nvidia-optix-{0}-{0}".format(_NVIDIA_OPTIX_SHA),
+    url = "https://gitlab.com/api/v4/projects/60515837/repository/archive.tar.gz?sha={}".format(_NVIDIA_OPTIX_SHA),
+)
+
+git_repository(
+    name = "com_github_nvtx",
+    remote = "https://github.com/NVIDIA/NVTX.git",
+    tag = "v3.1.1-c-cpp",
+    build_file = "//third_party/com_github_nvtx:BUILD.bazel",
 )
