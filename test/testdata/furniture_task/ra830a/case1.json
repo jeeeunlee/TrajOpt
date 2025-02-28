@@ -2,7 +2,7 @@
     "obstacles": {
         "wallBack": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/wallBack.obj",
+                "data": "/ra830a/meshes/wallBack.obj",
                 "name": "wallBack",
                 "type": "mesh"
             },
@@ -18,7 +18,7 @@
         },
         "Box1": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Box1.obj",
+                "data": "/ra830a/meshes/Box1.obj",
                 "name": "Box1",
                 "type": "mesh"
             },
@@ -34,7 +34,7 @@
         },
         "Box2": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Box2.obj",
+                "data": "/ra830a/meshes/Box2.obj",
                 "name": "Box2",
                 "type": "mesh"
             },
@@ -50,7 +50,7 @@
         },
         "ceiling": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/ceiling.obj",
+                "data": "/ra830a/meshes/ceiling.obj",
                 "name": "ceiling",
                 "type": "mesh"
             },
@@ -66,7 +66,7 @@
         },
         "Chair": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Chair.obj",
+                "data": "/ra830a/meshes/Chair.obj",
                 "name": "Chair",
                 "type": "mesh"
             },
@@ -82,7 +82,7 @@
         },
         "ClothRack": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/ClothRack.obj",
+                "data": "/ra830a/meshes/ClothRack.obj",
                 "name": "ClothRack",
                 "type": "mesh"
             },
@@ -98,7 +98,7 @@
         },
         "Dragon": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Dragon.obj",
+                "data": "/ra830a/meshes/Dragon.obj",
                 "name": "Dragon",
                 "type": "mesh"
             },
@@ -114,7 +114,7 @@
         },
         "floor": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/floor.obj",
+                "data": "/ra830a/meshes/floor.obj",
                 "name": "floor",
                 "type": "mesh"
             },
@@ -130,7 +130,7 @@
         },
         "Lamp": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Lamp.obj",
+                "data": "/ra830a/meshes/Lamp.obj",
                 "name": "Lamp",
                 "type": "mesh"
             },
@@ -146,7 +146,7 @@
         },
         "Sofa": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Sofa.obj",
+                "data": "/ra830a/meshes/Sofa.obj",
                 "name": "Sofa",
                 "type": "mesh"
             },
@@ -162,7 +162,7 @@
         },
         "Vase": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/Vase.obj",
+                "data": "/ra830a/meshes/Vase.obj",
                 "name": "Vase",
                 "type": "mesh"
             },
@@ -178,7 +178,7 @@
         },
         "wallLeft": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/wallLeft.obj",
+                "data": "/ra830a/meshes/wallLeft.obj",
                 "name": "wallLeft",
                 "type": "mesh"
             },
@@ -194,7 +194,7 @@
         },
         "wallRight": {
             "info": {
-                "data": "./test/testdata/furniture_task/meshes/wallRight.obj",
+                "data": "/ra830a/meshes/wallRight.obj",
                 "name": "wallRight",
                 "type": "mesh"
             },
