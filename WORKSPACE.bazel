@@ -61,6 +61,14 @@ pinocchio_repository(version="2.6.10")
 #osg
 load("//rossy_utils/thirdparty-bazel/openSceneGraph:repository.bzl", "osg_repository")
 osg_repository()
+# qpoases
+http_archive(
+    name = "com_github_qpoases",
+    build_file = "@//rossy_utils/thirdparty-bazel/com_github_qpoases:BUILD.bazel",
+    strip_prefix = "qpOASES-3.2.1",
+    urls = ["https://www.coin-or.org/download/source/qpOASES/qpOASES-3.2.1.tgz"],
+    sha256 = "9d81a8af3f5b5ba6e90912964966f7b246f16979db166c3631eeaeca9b4d5666",
+) 
 # OSQP and its dependencies
 http_archive(
     name = "com_github_osqp_qdldl",
@@ -69,7 +77,6 @@ http_archive(
     strip_prefix = "qdldl-0.1.7",
     url = "https://github.com/osqp/qdldl/archive/refs/tags/v0.1.7.tar.gz",
 )
-
 http_archive(
     name = "com_github_osqp_osqp",
     build_file = "//rossy_utils/thirdparty-bazel:com_github_osqp_osqp/BUILD.oss",

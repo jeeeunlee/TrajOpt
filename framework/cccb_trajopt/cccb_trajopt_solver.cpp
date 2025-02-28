@@ -49,51 +49,51 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     Eigen::VectorXf cp_vector, cp_bar = cp_0;
     float h, hbar = h0;
     
-    int n_iter(0), max_iter(5);
+    int n_iter(0), max_iter(10);
     timer.printElapsedMiliSec("opt setting = ");
     Eigen::VectorXd x_double;
+    rossy_utils::OSQPSolver solver;
     while(n_iter++ < max_iter){
      
         // update constraints: Ac*del_cp + ah*delh <= b
+        updateQuadCostCoeffs(cp_bar, Q_sparse, q);
         updateConstraints(cp_bar, hbar, Ac, ah, b);
         timer.printElapsedMiliSec("updateConstraints = ");
         // update collision constraints: 
         addColConstraints(cp_bar, hbar, Ac, ah, b);
-        timer.printElapsedMiliSec("addColConstraints = ");
+        timer.printElapsedMiliSec("addColConstraints(ray-traced) = ");
 
         // set constraints
         updateAsparse(Ac,ah,A_sparse);
         timer.printElapsedMiliSec("updateAsparse = ");
         
         // solve problem
-        updateQuadCostCoeffs(cp_bar, Q_sparse, q);
-        timer.printElapsedMiliSec("updateQuadCostCoeffs = ");
-        
-        float retf = rossy_utils::qpprogOSQPSparse(Q_sparse, q, A_sparse, b, x);            
+        float retf = solver.qpprogOSQPSparse(Q_sparse, q, A_sparse, b, x);            
         timer.printElapsedMiliSec("qpprogOSQP = ");
-        
-        // Eigen::Map<Eigen::MatrixXf> xmat(x.data(), dim_, x.size()/dim_);
-        // std::cout << "x (dCP) = " << xmat.transpose() << std::endl; 
-        // std::cout<<" I'm here 6 " << std::endl;
 
         // update
         cp_vector = cp_bar + x.segment(0,CPdim);
         h = getMinH(cp_vector, planning_cmd);
 
         // check terminate conditions
-        if(h>hbar){
+        float tt_reduced = N*(hbar-h);
+        float h_change = hbar-h;
+        float cp_change = (cp_bar-cp_vector).norm()/sqrt(CPdim);
+        float h_diff_relative = abs(hbar-h)/hbar;
+        float cp_diff_relative = (cp_bar-cp_vector).norm()/cp_bar.norm();
+        if( cp_diff_relative < 1e-2 ||
+            cp_change < 1e-2 ){ // || h_diff < 5e-3
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
-            std::cout<<"[Termination] : h increased from " << hbar <<" to " << h << std::endl;
-            break;
-        }
-        else if(N*(hbar-h)<1e-2){ // (cp_bar-cp_vector).norm()<1e-3
-            std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
-            std::cout<<"[Termination] : h decreased from " << hbar <<" to " << h << std::endl;
+            // std::cout<<"   retf = " << retf << ", h_diff(rel,abs) = " << h_diff_relative << ", " << h_change <<
+            //         ", cp_diff(rel,abs) = " << cp_diff_relative << ", " << cp_change << std::endl;
+            std::cout<< "[Termination]" << std::endl;
             break;
         }
         else // (h<hbar)
         {
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<<h << " => " << N*h <<std::endl;
+            // std::cout<<"   retf = " << retf << ", h_diff(rel,abs) = " << h_diff_relative << ", " << h_change <<
+            //         ", cp_diff(rel,abs) = " << cp_diff_relative << ", " << cp_change << std::endl;
             cp_bar = cp_vector;
             hbar = h;
         }
@@ -122,10 +122,10 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
     int CPdim = cp_bar.size();
     int n = (int)(CPdim/dim_); // = N-3  
     
-    // tuning parameters: min (del_h - alpha/gamma)^2
+    // tuning parameters: min 0.5*gamma*(del_h - alpha/gamma)^2 ~ -alpha*delh
     // if gamma is too small then Q become ill-conditioned
-    float gamma = 1.f; // regulization term
-    float alpha = 50.f; // weight term
+    float gamma = 5e-4f; // regulization term
+    float alpha = 5.f; // weight term
 
     // update Hessian only if none
     if( Q_sparse.rows() !=  CPdim+1 ){
@@ -139,7 +139,7 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
         int idx(0);
         for(int i=0; i<CPdim; ++i){
             // col-major order
-            if(i>dim_){
+            if(i>=dim_){
                 triplets[idx++] = Eigen::Triplet<float>(i-dim_,i,-1.f);
             }            
             triplets[idx++] = Eigen::Triplet<float>(i,i,2.f);
@@ -152,9 +152,7 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
         Q_sparse.setFromTriplets(triplets.begin(), triplets.end());
         Q_sparse.makeCompressed();
     }
-    // std::cout<< Q_sparse << std::endl;
-
-    
+    // std::cout<< Q_sparse << std::endl;    
     q = Eigen::VectorXf::Zero(CPdim+1);
     q.segment(0, CPdim) = 2.*cp_bar;
     q.segment(0, dim_) -= pi_;

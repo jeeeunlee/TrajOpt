@@ -465,7 +465,9 @@
         "slist": "cpp",
         "cfenv": "cpp",
         "source_location": "cpp",
-        "target": "cpp"
+        "target": "cpp",
+        "print": "cpp",
+        "*.tpp": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true,
     "C_Cpp.errorSquiggles": "disabled"
