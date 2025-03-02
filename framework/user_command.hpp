@@ -36,9 +36,10 @@ class OBSTACLE{
       // pos(3) + quat(4)
       pose = Eigen::VectorXf::Zero(7);
       pose << 0., 0., 0., 1., 0., 0., 0.; 
-      dimension = Eigen::VectorXf::Zero(3);
+      dimension = Eigen::VectorXf::Ones(3);
       type = 0;
       name = "";
+      meshPath = "";
     }
     void printInfo() const{
       std::cout << " pose = " << this->pose.transpose() << std::endl;
@@ -47,8 +48,9 @@ class OBSTACLE{
   public:
     Eigen::VectorXf pose;
     Eigen::VectorXf dimension;
-    int type; // 0: box
+    int type; // 0: box, 1: mesh
     std::string name;
+    std::string meshPath;
 };
 
 class GRIPPED_BOX{
