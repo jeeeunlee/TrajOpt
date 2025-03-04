@@ -1,4 +1,4 @@
-import setup_paths
+import motion_compendium.setup_paths
 
 from bindings import trajopt_planner
 from simulator.utils.interface_wrapper import RobotInterface

@@ -1,8 +1,8 @@
 import setup_paths
 
 from trajopt_interface import TrajoptInterface
-from configs.ra830a import Config as ra830a
-from configs.ra830b import Config as ra830b
+from simulator.configs.ra830a import Config as ra830a
+from simulator.configs.ra830b import Config as ra830b
 
 from typing import Dict, List, Optional, Union
 import numpy as np

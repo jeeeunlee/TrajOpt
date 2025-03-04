@@ -3,7 +3,6 @@ from collections import OrderedDict
 import copy
 import signal
 import shutil
-import cv2
 import pybullet as p
 import numpy as np
 
@@ -15,8 +14,8 @@ sys.path.append(os.getcwd() + 'simulator/utils')
 sys.path.append(os.getcwd() + 'simulator')
 
 np.set_printoptions(precision=2)
-import utils.pybullet_util as pybullet_util
-from utils.interface_wrapper import RobotInterface
+import simulator.utils.pybullet_util as pybullet_util
+from simulator.utils.interface_wrapper import RobotInterface
 
 
 class Simulator():
@@ -81,15 +80,6 @@ class Simulator():
         
         # Apply cmd
         pybullet_util.set_motor_pos_vel(self.robot, self.joint_id, jp, jv)
-
-        # Save Image
-        if (self.Config.VIDEO_RECORD) and (self.count % self.Config.RECORD_FREQ == 0):
-            frame = pybullet_util.get_camera_image([1.2, 0.5, 1.], 2.0, 120,
-                                                   -15, 0, 60., 1920, 1080,
-                                                   0.1, 100.)
-            frame = frame[:, :, [2, 1, 0]]  # << RGB to BGR
-            filename = self.Config.VIDEO_DIR + '/step%06d.jpg' % self.count
-            cv2.imwrite(filename, frame)
 
         p.stepSimulation()
 

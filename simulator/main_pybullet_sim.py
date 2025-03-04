@@ -1,10 +1,10 @@
-import setup_paths
+import motion_compendium.setup_paths
 
 from bindings import trajopt_planner
 
 import numpy as np
-from utils.pybullet_simulator import Simulator
-import utils.pybullet_util as pybullet_util
+from simulator.utils.pybullet_simulator import Simulator
+import simulator.utils.pybullet_util as pybullet_util
 
 # robot type
 # from simulator.configs.rl030a import Config

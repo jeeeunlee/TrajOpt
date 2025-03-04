@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Union, Dict
 
 cwd = os.getcwd()
 sys.path.append(cwd)
@@ -11,12 +12,9 @@ from collections import OrderedDict
 
 import pybullet as p
 import numpy as np
-from tqdm import tqdm
-import cv2
-import imageio
 
-import utils.util as util
-import utils.liegroup
+import simulator.utils.util as util
+
 
 
 def get_robot_config(robot,
@@ -185,24 +183,55 @@ def set_motor_pos(robot, joint_id, pos_cmd):
                                 controlMode=p.POSITION_CONTROL,
                                 targetPositions=list(pos_applied.values()))
 
+def check_pos_limit(robot,
+                    pos_cmd: OrderedDict[int, float], 
+                    ) -> bool:
+    bsafe = True
+    for joint_id, pos in pos_cmd.items():
+        joint_info = p.getJointInfo(robot, joint_id)
+        joint_lower_limit = joint_info[8]
+        joint_upper_limit = joint_info[9]
+        
+        if pos < joint_lower_limit or pos > joint_upper_limit:
+            print(f"Position command {pos} for joint {joint_id} is out of bounds!")
+            bsafe = False
 
-def set_motor_pos_vel(robot, joint_id, pos_cmd, vel_cmd):
+    return bsafe
+
+def set_motor_pos_vel(robot, # pybullet robot id
+                      joint_ids: dict[str, float], 
+                      pos_cmd: Union[np.ndarray, Dict[str, float], list[int, float]], 
+                      vel_cmd: Union[np.ndarray, Dict[str, float], list[int, float]]):
     pos_applied = OrderedDict()
     vel_applied = OrderedDict()
 
     if(isinstance(pos_cmd, np.ndarray)):
         for joint_id, pos_des in enumerate(pos_cmd):
             pos_applied[joint_id] = pos_des
-    else:
+    elif isinstance(pos_cmd, dict):
         for joint_name, pos_des in pos_cmd.items():
-            pos_applied[joint_id[joint_name]] = pos_des
+            pos_applied[joint_ids[joint_name]] = pos_des
+    elif isinstance(pos_cmd, list):
+        for joint_id, pos_des in enumerate(pos_cmd):
+            pos_applied[joint_id] = pos_des
+    else:
+        raise ValueError("pos_cmd must be either a numpy array, a dictionary, or a list.")
+    
+    check_pos_limit(robot, pos_applied)
+
             
     if(isinstance(vel_cmd, np.ndarray)):
         for joint_id, vel_des in enumerate(vel_cmd):
             vel_applied[joint_id] = vel_des
-    else:
+    elif isinstance(vel_cmd, dict):
         for joint_name, vel_des in vel_cmd.items():
             vel_applied[joint_id[joint_name]] = vel_des
+    elif isinstance(vel_cmd, list):
+        for joint_id, vel_des in enumerate(vel_cmd):
+            vel_applied[joint_id] = vel_des
+    else:
+        raise ValueError("vel_cmd must be either a numpy array, a dictionary, or a list.")
+
             
     p.setJointMotorControlArray(robot,
                                 pos_applied.keys(),
@@ -275,19 +304,6 @@ def get_camera_image_from_link(robot, link, pic_width, pic_height, fov,
     return width, height, rgb_img, depth_img, seg_img, view_matrix, projection_matrix, camera_eye_pos
 
 
-def make_video(video_dir, delete_jpgs=True):
-    images = []
-    for file in tqdm(sorted(os.listdir(video_dir)),
-                     desc='converting jpgs to gif'):
-        filename = video_dir + '/' + file
-        im = cv2.imread(filename)
-        im = im[:, :, [2, 1, 0]]  # << BGR to RGB
-        images.append(im)
-        if delete_jpgs:
-            os.remove(filename)
-    imageio.mimsave(video_dir + '/video.gif', images[:-1], duration=0.01)
-
-
 def get_camera_image(cam_target_pos, cam_dist, cam_yaw, cam_pitch, cam_roll,
                      fov, render_width, render_height, nearval, farval):
     view_matrix = p.computeViewMatrixFromYawPitchRoll(
@@ -334,6 +350,8 @@ def get_key_pressed():
 def set_config(robot, joint_id, joint_pos):
     for k, v in joint_pos.items():
         p.resetJointState(robot, joint_id[k], v, 0.)
+        # joint_state = p.getJointState(robot, joint_id[k])
+        # print(f"Joint {joint_id[k]} initial position set to: {joint_state[0]}")
         
 def get_joint_dict(joint_id, joint_pos):
     joint_value = OrderedDict()

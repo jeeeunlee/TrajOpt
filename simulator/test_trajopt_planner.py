@@ -12,7 +12,7 @@ from simulator.configs.ra830b import Config as ra830b
 # from simulator.configs.ra830l import Config
 
 from simulator.trajopt_interface import TrajoptInterface
-from read_snapshots import read_case_data
+from simulator.motion_compendium.read_snapshots import read_case_data
 
 
 ra830a_planner = TrajoptInterface(ra830a)

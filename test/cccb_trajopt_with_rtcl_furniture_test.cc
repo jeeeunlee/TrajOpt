@@ -4,6 +4,7 @@
 #include "framework/user_command.hpp"
 #include "test/json_utils.h"
 #include "Configuration.h"
+#include "rossy_utils/io/io_utilities.hpp"
 // #include <nvtx3/nvToolsExt.h>
 // json_list_to_eigen, json_listoflist_to_eigenmat, json_listoflist_to_vecofeigen
 
@@ -82,12 +83,16 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
     infc->getPlannedResult(imp_soln);
     infc->getPlannedTrajectory(tstep, traj_data);
 
-    // print results
-    // for (int i(0); i<traj_data->tdata.size(); ++i){
-    //     std::cout<< traj_data->tdata[i] <<  "," 
-    //     << traj_data->qdata[i].transpose() << "," 
-    //     << traj_data->dqdata[i].transpose() << std::endl;
-    // }
+    // save results
+    for (int i(0); i<traj_data->tdata.size(); ++i){
+        // std::cout<< traj_data->tdata[i] <<  "," 
+        // << traj_data->qdata[i].transpose() << "," 
+        // << traj_data->dqdata[i].transpose() << std::endl;
+        rossy_utils::saveValue(traj_data->tdata[i], "traj_t");
+        rossy_utils::saveVector(traj_data->qdata[i], "traj_q");
+        rossy_utils::saveVector(traj_data->dqdata[i], "traj_dq");
+    }
+
 }
 
 // TEST(CCCBTrajOptTest, NoGrippedBox){
