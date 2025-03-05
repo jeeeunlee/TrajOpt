@@ -18,12 +18,14 @@ class Planner{
 
     bool b_planned_=false;
     bool b_planned_firstvisit_=false;
+    bool b_planner_initialize_=false;
 
   public:
     Planner(RobotSystem<float>* _robot){
         robot_ = _robot; }
     virtual ~Planner(){}
 
+    virtual bool initPlanner(PLANNING_COMMAND* _user_cmd) = 0;
     virtual bool doPlanning(PLANNING_COMMAND* _user_cmd) = 0;
     virtual bool getPlannedCommand(Eigen::VectorXf& q_cmd) = 0;
     virtual bool getPlannedCommand(Eigen::VectorXf& q_cmd,
@@ -32,7 +34,7 @@ class Planner{
                                 Eigen::VectorXf& qdot_cmd,
                                 Eigen::VectorXf& qddot_cmd) = 0;
 
-    void reset(){b_planned_=false;}
+    void reset(){b_planned_=false; b_planner_initialize_=false;}
     void updateTime(double _t){
       current_time_ = _t;
       if(b_planned_ && 

@@ -68,8 +68,17 @@ void TestInterface::updateRobotSystem(SensorData* data){
     ((CCCBTrajOptPlanner*)planner_)->updateTime(running_time_);
 }
 
+bool TestInterface::initInterface(void* user_cmd){
+    std::cout<<"Interface initialize start"<<std::endl;  
+    clock_->start();
+    plan_cmd_ = (PLANNING_COMMAND*)user_cmd;
+    bool initialized = planner_->initPlanner(plan_cmd_);
+    clock_->printElapsedMiliSec("initInterface = ");
+    return initialized;
+}
 
 bool TestInterface::doPlanning(void* user_cmd){
+    initInterface(user_cmd);
     std::cout<<"doPlanning start"<<std::endl;    
     clock_->start();
     plan_cmd_ = (PLANNING_COMMAND*)user_cmd;

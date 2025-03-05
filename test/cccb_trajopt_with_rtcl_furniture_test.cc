@@ -64,6 +64,8 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
     PLANNING_COMMAND* plancmd = new PLANNING_COMMAND();
     SOLUTION* solution = new SOLUTION();
     TRAJ_DATA* traj_data = new TRAJ_DATA();
+    SOLUTION* imp_soln = new SOLUTION();
+    double tstep = 0.05;
 
     // generate_rand_problem(plancmd);    
     read_case(plancmd,robot_name, 1);
@@ -73,15 +75,15 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
     std::cout << plancmd->gripped_box.pose_from_ee.transpose() << std::endl;
     std::cout << plancmd->gripped_box.dimension.transpose() << std::endl;
     infc->updateAlpha(10);
-    infc->doPlanning(plancmd);
-    double tstep = 0.05;
+    // infc->initInterface(plancmd);
+    infc->doPlanning(plancmd);    
     infc->getPlannedTrajectory(tstep, traj_data);
 
-    std::cout<< " ---------------- " << std::endl;
-    infc->doPlanning(plancmd);
-    SOLUTION* imp_soln = new SOLUTION();
-    infc->getPlannedResult(imp_soln);
-    infc->getPlannedTrajectory(tstep, traj_data);
+    // std::cout<< " ---------------- " << std::endl;
+    // infc->initInterface(plancmd);
+    // infc->doPlanning(plancmd);    
+    // infc->getPlannedResult(imp_soln);
+    // infc->getPlannedTrajectory(tstep, traj_data);
 
     // save results
     for (int i(0); i<traj_data->tdata.size(); ++i){

@@ -33,14 +33,22 @@ CCCBTrajOptPlanner::CCCBTrajOptPlanner(RobotSystem<float>* _robot,
 
 CCCBTrajOptPlanner::~CCCBTrajOptPlanner() { }
 
-bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {  
-    // user_cmd: WPT_DATA()
-    std::cout<<" CCCBTrajOptPlanner::doPlanning " <<std::endl;
-    if(b_planned_== false){
-        b_planned_ = true;
-        b_planned_firstvisit_=false;   
+bool CCCBTrajOptPlanner::initPlanner(PLANNING_COMMAND* planning_cmd){
+    // std::cout<<" CCCBTrajOptPlanner::initPlanner " <<std::endl;
+    if(!b_planner_initialize_){
+        b_planner_initialize_ = true;
         obstacle_manager_->setGrippedBox(planning_cmd->gripped_box);
         obstacle_manager_->setObstacles(planning_cmd->obstacles);
+        obstacle_manager_->initialize();
+    }
+    return true;
+}
+
+bool CCCBTrajOptPlanner::doPlanning(PLANNING_COMMAND* planning_cmd) {  
+    // std::cout<<" CCCBTrajOptPlanner::doPlanning " <<std::endl;
+    if(b_planned_== false){
+        b_planned_ = true;
+        b_planned_firstvisit_=false; 
         // this will save the trajectory in cccb_traj_
         bool soln_exist = trajopt_solver_->solve(planning_cmd);        
         

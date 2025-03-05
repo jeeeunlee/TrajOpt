@@ -39,6 +39,7 @@ class TestInterface : public EnvInterface {
       ~TestInterface();
       
       virtual void getCommand(SensorData* _sensor_data, RobotCommand* _command_data);
+      virtual bool initInterface(void* user_cmd);
       virtual bool doPlanning(void* user_cmd);
       virtual void updateState(SensorData* _sensor_data);
 

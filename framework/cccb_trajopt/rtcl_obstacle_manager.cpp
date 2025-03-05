@@ -17,6 +17,67 @@ RtclObstacleManager::RtclObstacleManager(const std::string_view robot_name,
     rtcl_interface_ =  new rtcl::RtclInterface(robot_name, assets_directory);
 }
 
+void RtclObstacleManager::initialize(){
+    if(!b_initialized_){
+        b_initialized_ = true;
+        // set gripped box
+        if(gripped_box_updated_) {
+            rtcl_interface_->clearGrippedBox();
+            rtcl_interface_->setGrippedBox(gripped_box_.pose_from_ee, 
+                                        gripped_box_.dimension);
+            gripped_box_updated_ = false;
+        }
+        // localtimer.printElapsedMiliSec(" set gripped box = ");
+
+        // set obstacles
+        if(obstacles_updated_) {        
+            std::vector<Eigen::VectorXf> pose_list; // box
+            std::vector<Eigen::Vector3f> dim_list; // box
+            std::vector<Eigen::VectorXf> pose_list_mesh; // mesh
+            std::vector<std::string> mesh_path_list; // mesh
+
+            auto box_view = obstacles_ | std::views::filter([](const OBSTACLE &obs) {
+                return obs.type == 0;
+            });
+
+            for(auto &obs: box_view){
+                const Eigen::VectorXf pose{obs.pose};
+                const Eigen::Vector3f dim{obs.dimension};
+                // std::cout << "pose = "<< pose.transpose() << std::endl;
+                // std::cout << "dim = "<< dim.transpose() << std::endl;
+                pose_list.push_back(pose);
+                dim_list.push_back(dim);            
+            }
+            rtcl_interface_->clearBoxObstacles();
+            rtcl_interface_->setBoxObstacles(pose_list, dim_list);
+
+            auto mesh_view = obstacles_ | std::views::filter([](const OBSTACLE &obs) {
+                return obs.type == 1;
+            });
+
+
+            for(auto &obs: mesh_view){
+                pose_list_mesh.push_back(obs.pose);
+                mesh_path_list.push_back(obs.meshPath);
+            }
+            rtcl_interface_->clearMeshObstacles();
+            rtcl_interface_->setMeshObstacles(pose_list_mesh, mesh_path_list);
+
+            obstacles_updated_ = false;
+        }        
+    }
+
+    // initialize optix once by running raytracing once: 
+    // later: make function only do launch optix for initializing
+    static bool optix_initialized = false;
+    if(!optix_initialized){
+        bool robot_collision_free = rtcl_interface_->checkJointConfigCollisionDistance();
+        optix_initialized = true;
+    }
+    
+}
+
+
 void RtclObstacleManager::computeCollisionConstraints(
         const std::vector<Eigen::VectorXf> &joint_configs,
         Eigen::MatrixXf & U, Eigen::VectorXf & d){
@@ -24,51 +85,8 @@ void RtclObstacleManager::computeCollisionConstraints(
     // Clock localtimer;
     // localtimer.start();
 
-    // set gripped box
-    if(gripped_box_updated_) {
-        rtcl_interface_->clearGrippedBox();
-        rtcl_interface_->setGrippedBox(gripped_box_.pose_from_ee, 
-                                    gripped_box_.dimension);
-        gripped_box_updated_ = false;
-    }
-    // localtimer.printElapsedMiliSec(" set gripped box = ");
-
-    // set obstacles
-    if(obstacles_updated_) {        
-        std::vector<Eigen::VectorXf> pose_list; // box
-        std::vector<Eigen::Vector3f> dim_list; // box
-        std::vector<Eigen::VectorXf> pose_list_mesh; // mesh
-        std::vector<std::string> mesh_path_list; // mesh
-
-        auto box_view = obstacles_ | std::views::filter([](const OBSTACLE &obs) {
-            return obs.type == 0;
-        });
-
-        for(auto &obs: box_view){
-            const Eigen::VectorXf pose{obs.pose};
-            const Eigen::Vector3f dim{obs.dimension};
-            // std::cout << "pose = "<< pose.transpose() << std::endl;
-            // std::cout << "dim = "<< dim.transpose() << std::endl;
-            pose_list.push_back(pose);
-            dim_list.push_back(dim);            
-        }
-        rtcl_interface_->clearBoxObstacles();
-        rtcl_interface_->setBoxObstacles(pose_list, dim_list);
-
-        auto mesh_view = obstacles_ | std::views::filter([](const OBSTACLE &obs) {
-            return obs.type == 1;
-        });
-
-
-        for(auto &obs: mesh_view){
-            pose_list_mesh.push_back(obs.pose);
-            mesh_path_list.push_back(obs.meshPath);
-        }
-        rtcl_interface_->clearMeshObstacles();
-        rtcl_interface_->setMeshObstacles(pose_list_mesh, mesh_path_list);
-
-        obstacles_updated_ = false;
-    }
+    // update gripped box and obstacles in rtcl
+    initialize();
     // localtimer.printElapsedMiliSec(" set obstacles = ");
 
     if(obstacles_.size()>0 && joint_configs.size()>0)

@@ -17,6 +17,7 @@ class RtclObstacleManager : public ObstacleManager {
         // virtual void setObstacles(const std::vector<OBSTACLE>& obstacles);
         virtual void computeCollisionConstraints(const std::vector<Eigen::VectorXf> &joint_configs,
                                 Eigen::MatrixXf &U, Eigen::VectorXf &d);
+        virtual void initialize();
 
         void mapObstacleCoeff(
             const Eigen::MatrixXf &U,

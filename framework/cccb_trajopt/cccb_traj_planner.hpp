@@ -33,6 +33,7 @@ class CCCBTrajOptPlanner: public Planner{
                       int _link_idx);
     ~CCCBTrajOptPlanner();
 
+    bool initPlanner(PLANNING_COMMAND* planning_cmd);
     bool doPlanning(PLANNING_COMMAND* planning_cmd);
     bool getPlannedCommand(Eigen::VectorXf& q_cmd);
     bool getPlannedCommand(Eigen::VectorXf& q_cmd,
