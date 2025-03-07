@@ -87,6 +87,23 @@
             ]
         },
         {
+            "name": "collision_constraint_selection_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-out/k8-dbg/bin/test/collision_constraint_selection_test",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "linear_algebra_cu_test",
             "type": "cppdbg",
             "request": "launch",

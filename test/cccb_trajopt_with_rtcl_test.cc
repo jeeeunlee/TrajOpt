@@ -40,7 +40,7 @@ void read_case(PLANNING_COMMAND* plancmd, const std::string_view robotname, int 
     set_obstacles(problem["obstacles"], plancmd->obstacles);
 
     std::cout<<"set joint_path"<<std::endl;
-    json_listoflist_to_vecofeigen(problem["joint_path"], plancmd->joint_path, false);
+    json_listoflist_to_vecofeigen(problem["joint_path"], joint_path_, false);
 }
 
 TEST(CCCBTrajOptTest, AddGrippedBox){
