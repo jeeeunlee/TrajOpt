@@ -26,9 +26,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     updateCoeffs(planning_cmd, cccb_traj_); 
     Eigen::MatrixXf cp_variables_0 = cccb_traj_->findBSpline(planning_cmd->joint_path); //  [cp[0], cp[1],...,] : dim x (N-3) matrix
     Eigen::VectorXf cp_0 = rossy_utils::MatrixtoVector(cp_variables_0); // [cp[0]; cp[1];...] : dim*(N-3) x 1 vector
-    float h0 = getMinH(cp_0, planning_cmd);
-
-    timer.printElapsedMiliSec("initialize = ");
+    float h0 = getMinH(cp_0, planning_cmd);    
 
     // 2. optimization: find cp_vector, h
     // cp_vector = cp_bar + del_cp, h = hbar - delh
@@ -50,7 +48,8 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     float h, hbar = h0;
     
     int n_iter(0), max_iter(10);
-    timer.printElapsedMiliSec("opt setting = ");
+    timer.printElapsedMiliSec("initialize = ");
+    std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< hbar << " => " << N*hbar << std::endl;
     Eigen::VectorXd x_double;
     rossy_utils::OSQPSolver solver;
     while(n_iter++ < max_iter){
@@ -78,11 +77,9 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         // check terminate conditions
         float tt_reduced = N*(hbar-h);
         float h_change = hbar-h;
-        float cp_change = (cp_bar-cp_vector).norm()/sqrt(CPdim);
         float h_diff_relative = abs(hbar-h)/hbar;
         float cp_diff_relative = (cp_bar-cp_vector).norm()/cp_bar.norm();
-        if( cp_diff_relative < 1e-2 ||
-            cp_change < 1e-2 ){ // || h_diff < 5e-3
+        if( cp_diff_relative < 1e-2  ){ // || h_diff < 5e-3
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
             // std::cout<<"   retf = " << retf << ", h_diff(rel,abs) = " << h_diff_relative << ", " << h_change <<
             //         ", cp_diff(rel,abs) = " << cp_diff_relative << ", " << cp_change << std::endl;
