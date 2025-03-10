@@ -40,7 +40,7 @@ void read_case(PLANNING_COMMAND* plancmd, const std::string_view robotname, int 
     set_obstacles(problem["obstacles"], plancmd->obstacles);
 
     std::cout<<"set joint_path"<<std::endl;
-    json_listoflist_to_vecofeigen(problem["joint_path"], joint_path_, false);
+    json_listoflist_to_vecofeigen(problem["joint_path"], plancmd->joint_path, false);
 }
 
 TEST(CCCBTrajOptTest, AddGrippedBox){
@@ -61,6 +61,7 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
     std::cout << plancmd->gripped_box.pose_from_ee.transpose() << std::endl;
     std::cout << plancmd->gripped_box.dimension.transpose() << std::endl;
     infc->updateAlpha(10);
+    infc->initInterface(plancmd);
     infc->doPlanning(plancmd);
     double tstep = 0.05;
     infc->getPlannedTrajectory(tstep, traj_data);
