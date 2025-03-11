@@ -103,27 +103,6 @@ void RtclObstacleManager::computeCollisionConstraints(
             // rtcl_interface_->saveDebugData(debug_data, q);                
             updateConstraintsCoeff(&debug_data, num_joint_configs, dim, U, d);                
         }  
-        
-
-        // for (auto &q : joint_configs){
-        //     const uint dim{q.size()};
-        //     // std::cout << " start checkJointConfigCollisionDistance " << std::endl;
-        //     robot_collision_free = rtcl_interface_->checkJointConfigCollisionDistance(q);
-        //     // localtimer.printElapsedMiliSec(" rtcl colission checker = ");
-            
-        //     rtcl::CollisionCheckerData debug_data;
-        //     Ut = Eigen::MatrixXf::Zero(0, 0);
-        //     dt = Eigen::VectorXf::Zero(0);
-        //     if(rtcl_interface_->loadDebugData(debug_data)){
-        //         // rtcl_interface_->saveDebugData(debug_data, q);                
-        //         updateSingleJointCoeff(&debug_data, dim, Ut, dt);                
-        //     }            
-        //     // successfully loaded debug data from rtcl            
-        //     U = rossy_utils::dStack(U, Ut);
-        //     d = rossy_utils::vStack(d, dt);
-        //     // localtimer.printElapsedMiliSec(" building constraints = ");
-        // }
-        // std::cout << " robot_collision_free = " << robot_collision_free << std::endl;
     }
 }
 
@@ -155,9 +134,12 @@ void RtclObstacleManager::updateConstraintsCoeff(void* _debug_data,
         const uint num_selected = debug_data->selected_num_per_configs[ind_joint];
         const Eigen::MatrixXf &Ut = debug_data->selected_ray_direction_projected.block(ind_offset, 0, num_selected, dim);        
         const Eigen::VectorXf &dt = debug_data->selected_distances.segment(ind_offset, num_selected);
-        
+        const uint relaxed_coeff = (float)ind_joint * ((float)num_joint_configs-1.f-(float)ind_joint) 
+        / ( ((float)num_joint_configs-1.f)*((float)num_joint_configs-1.f) );
+        const Eigen::VectorXf &dt_relaxed = Eigen::VectorXf::Constant(num_selected, 2*relaxed_coeff*relaxed_coeff);
+
         U.block(ind_offset, ind_joint*dim, num_selected, dim) = Ut;
-        d.segment(ind_offset, num_selected) = dt;
+        d.segment(ind_offset, num_selected) = dt-dt_relaxed;
 
         ind_offset += num_selected;
     }

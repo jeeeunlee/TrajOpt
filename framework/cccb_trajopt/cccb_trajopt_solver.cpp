@@ -79,7 +79,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         float h_change = hbar-h;
         float h_diff_relative = abs(hbar-h)/hbar;
         float cp_diff_relative = (cp_bar-cp_vector).norm()/cp_bar.norm();
-        if( cp_diff_relative < 1e-2  ){ // || h_diff < 5e-3
+        if( cp_diff_relative < 1e-3  || h_diff_relative < 1e-3){ // || h_diff < 5e-3
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
             // std::cout<<"   retf = " << retf << ", h_diff(rel,abs) = " << h_diff_relative << ", " << h_change <<
             //         ", cp_diff(rel,abs) = " << cp_diff_relative << ", " << cp_change << std::endl;
