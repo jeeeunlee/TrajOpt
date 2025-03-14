@@ -23,11 +23,10 @@ class CCCBTrajOptSolver{
                                 Eigen::VectorXf &ah,
                                 Eigen::VectorXf &b);
 
-        void addColConstraints(const Eigen::VectorXf &Xbar,
+        void updateColConstraints(const Eigen::VectorXf &Xbar,
                                 float hbar,
-                                Eigen::MatrixXf &Ac,
-                                Eigen::VectorXf &ah,
-                                Eigen::VectorXf &b);
+                                Eigen::MatrixXf &Ac_clsn,
+                                Eigen::VectorXf &b_clsn);
 
         void updateQuadCostCoeffs(const Eigen::VectorXf &cp_bar,
                                 Eigen::SparseMatrix<float> &Q_sparse,
@@ -53,12 +52,15 @@ class CCCBTrajOptSolver{
         void updateCoeffs(PLANNING_COMMAND* planning_cmd, 
                         CCCBTrajManager* cccb_traj);
 
-        void updateAsparse(
+        void updateAsparseb(
             const Eigen::MatrixXf& Ac,
             const Eigen::VectorXf& ah,
-            Eigen::SparseMatrix<float>& A_sparse);
+            const Eigen::MatrixXf& Ac_clsn,
+            const Eigen::VectorXf& b_clsn,
+            Eigen::SparseMatrix<float>& A_sparse,
+            Eigen::VectorXf& b);
         std::vector<Eigen::Triplet<float>> Ac_triplets_;
-        uint n_Ac1_nonzero_;
+        uint n_Ac_dyn_nonzero_;
 
 
         Eigen::MatrixXf Ap_; // ((N-1)*dim) x ((N-3)*dim)

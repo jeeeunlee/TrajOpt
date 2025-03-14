@@ -84,11 +84,22 @@ class CollisionConstraintSelectionTest : public ::testing::Test {
         }
         std::cout << std::endl;
 
-        std::cout << "selected_indices batch = " << std::endl;
-        for(auto &id: selected_indices){
-            std::cout << id <<", ";
-        }
-        std::cout << std::endl;
+        // std::cout << "selected_indices batch = " << std::endl;
+        // for(auto &id: selected_indices){
+        //     std::cout << id <<", ";
+        // }
+        // std::cout << std::endl;
+
+        std::cout << "selected_indices from base = " << std::endl;
+        uint ind_base(0);
+        for(uint i(0); i<selected_num_per_configs.size(); ++i){
+            uint n = selected_num_per_configs[i];
+            for(uint j(ind_base); j<ind_base+n; ++j){
+                std::cout << selected_indices[j] - i*22162 <<", ";
+            }        
+            std::cout << std::endl;    
+            ind_base += n;
+        }        
     }    
     
     public:

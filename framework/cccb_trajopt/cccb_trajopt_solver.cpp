@@ -50,8 +50,9 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
     int n_iter(0), max_iter(10);
     timer.printElapsedMiliSec("initialize = ");
     std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< hbar << " => " << N*hbar << std::endl;
-    Eigen::VectorXd x_double;
     rossy_utils::OSQPSolver solver;
+    Eigen::MatrixXf Ac_clsn;
+    Eigen::VectorXf ah_col, b_clsn;
     while(n_iter++ < max_iter){
      
         // update constraints: Ac*del_cp + ah*delh <= b
@@ -59,12 +60,12 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         updateConstraints(cp_bar, hbar, Ac, ah, b);
         timer.printElapsedMiliSec("updateConstraints = ");
         // update collision constraints: 
-        addColConstraints(cp_bar, hbar, Ac, ah, b);
-        timer.printElapsedMiliSec("addColConstraints(ray-traced) = ");
+        updateColConstraints(cp_bar, hbar, Ac_clsn, b_clsn);
+        timer.printElapsedMiliSec("updateColConstraints(ray-traced) = ");
 
-        // set constraints
-        updateAsparse(Ac,ah,A_sparse);
-        timer.printElapsedMiliSec("updateAsparse = ");
+        // set final constraints for OSQP
+        updateAsparseb(Ac, ah, Ac_clsn, b_clsn, A_sparse, b);
+        timer.printElapsedMiliSec("updateAsparseb = ");
         
         // solve problem
         float retf = solver.qpprogOSQPSparse(Q_sparse, q, A_sparse, b, x);            
@@ -79,13 +80,20 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         float h_change = hbar-h;
         float h_diff_relative = abs(hbar-h)/hbar;
         float cp_diff_relative = (cp_bar-cp_vector).norm()/cp_bar.norm();
-        if( cp_diff_relative < 1e-3  || h_diff_relative < 1e-3){ // || h_diff < 5e-3
+        if( cp_diff_relative < 5e-3 || h_diff_relative < 5e-3){ // || h_diff < 5e-3
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
             // std::cout<<"   retf = " << retf << ", h_diff(rel,abs) = " << h_diff_relative << ", " << h_change <<
             //         ", cp_diff(rel,abs) = " << cp_diff_relative << ", " << cp_change << std::endl;
             std::cout<< "[Termination]" << std::endl;
+            cp_bar = cp_vector;
+            hbar = h;
             break;
         }
+        // else if(h_change < 0){
+        //     std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
+        //     std::cout<< "[Termination]" << std::endl;
+        //     break;
+        // }
         else // (h<hbar)
         {
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<<h << " => " << N*h <<std::endl;
@@ -168,10 +176,11 @@ void CCCBTrajOptSolver::updateConstraints(
         Eigen::VectorXf &b){   
 
     int CPdim = cp_bar.size(); // (N-3)*dim
+    int dim_pc = Ap_.rows();
     int dim_vc = Av_.rows();
     int dim_ac = Aa_.rows();
     int dim_jc = Aj_.rows();
-    int dim_constr = 2*(dim_vc + dim_ac + dim_jc + 1); // (+,-)
+    int dim_constr = 2*(dim_vc + dim_ac + dim_jc + dim_pc + 1); // (+,-)
     // update Ac only if it's first
     if(!initialized_){
         Ac = Eigen::MatrixXf::Zero(dim_constr, CPdim);        
@@ -184,8 +193,11 @@ void CCCBTrajOptSolver::updateConstraints(
         // jerk constr
         Ac.block(2*dim_vc+2*dim_ac, 0, dim_jc, CPdim) = Aj_;      
         Ac.block(2*dim_vc+2*dim_ac+dim_jc, 0, dim_jc, CPdim) = - Aj_;
+        // position constr: -rmax < Ap_*dC + 0*dh < rmax
+        Ac.block(2*dim_vc+2*dim_ac+2*dim_jc, 0, dim_pc, CPdim) = Ap_;
+        Ac.block(2*dim_vc+2*dim_ac+2*dim_jc+dim_pc, 0, dim_pc, CPdim) = -Ap_;
         // h constr
-        // Ac.block(2*dim_vc+2*dim_ac+2*dim_jc, 0, 2, CPdim) = Eigen::MatrixXf::Zero(2, CPdim);
+        // Ac.block(2*dim_vc+2*dim_ac+2*dim_jc+2*dim_pc, 0, 2, CPdim) = Eigen::MatrixXf::Zero(2, CPdim);
     }
     else{
         Ac = Ac.topRows(dim_constr);
@@ -211,22 +223,23 @@ void CCCBTrajOptSolver::updateConstraints(
     b.segment(2*dim_vc+2*dim_ac, dim_jc) = hbar*hbar*hbar*JCrep_ - Aj_*cp_bar - bj_;
     b.segment(2*dim_vc+2*dim_ac+dim_jc, dim_jc)= hbar*hbar*hbar*JCrep_ + Aj_*cp_bar + bj_;
 
+    // position constr: -rmax < Ap_*dC + 0*dh < rmax
+    float rmax = 0.1f;
+    b.segment(2*dim_vc+2*dim_ac+2*dim_jc, dim_pc) = Eigen::VectorXf::Constant(dim_pc, rmax);        
+    b.segment(2*dim_vc+2*dim_ac+2*dim_jc+dim_pc, dim_pc) = Eigen::VectorXf::Constant(dim_pc, rmax);
+
     // h constr: -delh<0, delh<jbar
-    ah[2*dim_vc+2*dim_ac+2*dim_jc] = -1.f;
-    ah[2*dim_vc+2*dim_ac+2*dim_jc+1] = 1.f;
-    b[2*dim_vc+2*dim_ac+2*dim_jc] = 0.f;
-    b[2*dim_vc+2*dim_ac+2*dim_jc+1] = hbar;
+    ah[2*dim_vc+2*dim_ac+2*dim_jc+2*dim_pc] = -1.f;
+    ah[2*dim_vc+2*dim_ac+2*dim_jc+2*dim_pc+1] = 1.f;
+    b[2*dim_vc+2*dim_ac+2*dim_jc+2*dim_pc] = 0.f;
+    b[2*dim_vc+2*dim_ac+2*dim_jc+2*dim_pc+1] = hbar;
 }
 
-void CCCBTrajOptSolver::addColConstraints(
+void CCCBTrajOptSolver::updateColConstraints(
         const Eigen::VectorXf &cp_bar,
         float hbar,
-        Eigen::MatrixXf &Ac,
-        Eigen::VectorXf &ah,
-        Eigen::VectorXf &b){
-    float dist_relaxed = 0.0f; //-0.01;
-    Eigen::MatrixXf Actmp, tmp;
-    Eigen::VectorXf ahtmp, btmp, btmp1, btmp2;
+        Eigen::MatrixXf &Ac_clsn,
+        Eigen::VectorXf &b_clsn){
 
     int CPdim = cp_bar.size();
 
@@ -235,87 +248,107 @@ void CCCBTrajOptSolver::addColConstraints(
     int num_knot_points = pVec.size()/dim_; // N-1
     std::vector<Eigen::VectorXf> joint_configs(num_knot_points);
     for(int i(0); i<num_knot_points; ++i){
-        joint_configs[i] = pVec.segment(i*dim_,dim_) ;
+        joint_configs[i] = pVec.segment(i * dim_, dim_);
     }
 
     // compute collision constraints U*Δq < d
     Eigen::MatrixXf U = Eigen::MatrixXf::Zero(0,0);
-    Eigen::VectorXf d = Eigen::VectorXf::Zero(0);
-    obstacle_manager_->computeCollisionConstraints(joint_configs, U, d);
+    b_clsn = Eigen::VectorXf::Zero(0);
+    obstacle_manager_->computeCollisionConstraints(joint_configs, U, b_clsn);
 
-    // std::cout<<"   - obstacle constraint dimension: " << d.size() << std::endl;
-    int NObs = U.rows();
-
-    if(NObs>0){
-        // add collision constraints
-        // Actmp = U*Ap_;
-        ((RtclObstacleManager*)obstacle_manager_)->mapObstacleCoeff(U, Ap_, Actmp);
-        ahtmp = Eigen::VectorXf::Zero(NObs,1);
-        btmp = d + Eigen::VectorXf::Constant(NObs, dist_relaxed);        
-        Ac = rossy_utils::vStack(Ac, Actmp);
-        ah = rossy_utils::vStack(ah, ahtmp);
-        b = rossy_utils::vStack(b, btmp);
-
-        // add max CPs dist for each
-        float rmax = 0.2;
-        int Pdim = Ap_.rows();
-        tmp = -Ap_;
-        Actmp = rossy_utils::vStack(Ap_, tmp);
-        ahtmp = Eigen::VectorXf::Zero(2*Pdim, 1);
-        btmp = Eigen::VectorXf::Constant(2*Pdim, rmax);    
-        Ac = rossy_utils::vStack(Ac, Actmp);
-        ah = rossy_utils::vStack(ah, ahtmp);
-        b = rossy_utils::vStack(b,btmp);
+    if(U.rows()>0){
+        // add collision constraints: U*Ap_*dC + 0*dh < d
+        ((RtclObstacleManager*)obstacle_manager_)->mapObstacleCoeff(
+            U, Ap_, Ac_clsn); // Actmp = U*Ap_;
+        // [Nc*(N-1) x (N-3)*dim] = [Nc*(N-1) x (N-1)*dim] * [(N-1)*dim x (N-3)*dim]
     }
 }
 
-void CCCBTrajOptSolver::updateAsparse(
-        const Eigen::MatrixXf& Ac,
+void CCCBTrajOptSolver::updateAsparseb(
+        const Eigen::MatrixXf& Ac, // dynamic constraints
         const Eigen::VectorXf& ah,
-        Eigen::SparseMatrix<float>& A_sparse){
-    // A = [Ac, ah] 
+        const Eigen::MatrixXf& Ac_clsn, // collision constraints
+        const Eigen::VectorXf& b_clsn,
+        Eigen::SparseMatrix<float>& A_sparse,
+        Eigen::VectorXf& b){
     assert(Ac.rows() == ah.size());
-    int dim_constr = 2*(Av_.rows() + Aa_.rows() + Aj_.rows() + 1);    
-    int nr = ah.size();
-    int nc = Ac.cols() + 1;  
+    assert(Ac_clsn.rows() == b_clsn.size());
+    assert(Ac_clsn.cols() == Ac.cols());
+    // update b
+    b.conservativeResize(b.size() + b_clsn.size());
+    b.tail(b_clsn.size()) = b_clsn;
 
-    if(!initialized_){        
-        Eigen::SparseMatrix<float>  Ac1_sparse = Ac.topRows(dim_constr).sparseView();
+    // A = [Ac, ah] 
+    int n_dyn_constr = ah.size();    
+    int n_total_constraints = n_dyn_constr + Ac_clsn.rows();
+    int dim_cp = Ac.cols();
+
+    if(!initialized_){      
+        // Ac is fixed for N and dim
+        Eigen::SparseMatrix<float>  Ac1_sparse = Ac.sparseView();
         Ac1_sparse.makeCompressed();
-        n_Ac1_nonzero_ = Ac1_sparse.nonZeros();
-        Ac_triplets_.resize(n_Ac1_nonzero_);
+        n_Ac_dyn_nonzero_ = Ac1_sparse.nonZeros();
+        Ac_triplets_.resize(n_Ac_dyn_nonzero_);
         int n_triplet(0);
         for (int k = 0; k < Ac1_sparse.outerSize(); ++k) {
             for (Eigen::SparseMatrix<float>::InnerIterator it(Ac1_sparse, k); it; ++it) {
                 Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.row(), it.col(), it.value());
             }
         }
-    }           
+    }
 
-    Eigen::SparseMatrix<float> Ac2_sparse = Ac.bottomRows(nr-dim_constr).sparseView();    
-    Eigen::SparseVector<float> ah_sparse = ah.sparseView();    
-    Ac2_sparse.makeCompressed();
+    int n_triplet = n_Ac_dyn_nonzero_;
+    Eigen::SparseVector<float> ah_sparse = ah.sparseView();
     
-    Ac_triplets_.resize(n_Ac1_nonzero_ + Ac2_sparse.nonZeros() + ah_sparse.nonZeros());
-    int n_triplet(n_Ac1_nonzero_);    
-    for (int k = 0; k < Ac2_sparse.outerSize(); ++k) {
-        for (Eigen::SparseMatrix<float>::InnerIterator it(Ac2_sparse, k); it; ++it) {
-            Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.row()+dim_constr, it.col(), it.value());
+    // original code
+    // Eigen::SparseMatrix<float> Ac_clsn_sparse = Ac_clsn.sparseView(); 
+    // Ac_clsn_sparse.makeCompressed();
+    // Ac_triplets_.resize(n_Ac_dyn_nonzero_ + ah_sparse.nonZeros() + Ac_clsn_sparse.nonZeros());
+    // for (Eigen::SparseVector<float>::InnerIterator it(ah_sparse); it; ++it) {
+    //     Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.index(), dim_cp, it.value());
+    // }
+    // for (int k = 0; k < Ac_clsn_sparse.outerSize(); ++k) {
+    //     for (Eigen::SparseMatrix<float>::InnerIterator it(Ac_clsn_sparse, k); it; ++it) {
+    //         Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.row()+n_constr, it.col(), it.value());
+    //     }
+    // }
+
+    // Assume the fixed Nc: num of collision constraints for each knot point
+    // Ac_clsn = U*Ap_ : Nc*(N-1) x (N-3)*dim
+    //         = [U1*1/6, 0, ,,                     ]
+    //           [U2*2/3, U1*1/6, 0, ,,             ]
+    //           [U3*1/6, U2*2/3, U1*1/6, 0, ,,     ]
+    //           [0, U4*1/6, U3*2/3, U2*1/6, 0, ,,  ]
+    //           [0, 0, U5*1/6, U4*2/3, U3*1/6, 0,  ]
+    // Ui : Nc x dim   
+    uint N = dim_cp/dim_ + 3; // dim_cp = (N-3)*dim_
+    uint Nc = Ac_clsn.rows()/(N-1);
+    uint Ac_clsn_nonzero = 3*dim_cp*Nc;
+    
+
+    Ac_triplets_.resize(n_Ac_dyn_nonzero_ + ah_sparse.nonZeros() + Ac_clsn_nonzero);
+    for (Eigen::SparseVector<float>::InnerIterator it(ah_sparse); it; ++it) {
+        Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.index(), dim_cp, it.value());
+    }
+
+    size_t ir_base, ic_base;
+    for(size_t indU(0); indU<N-3; ++indU){
+        for(size_t ind3(0); ind3<3; ++ind3){
+            ir_base = (indU+ind3) * Nc;
+            ic_base = indU * dim_;
+            for(size_t ir(ir_base); ir<ir_base+Nc; ++ir){
+                for(size_t ic(ic_base); ic<ic_base+dim_; ++ic){
+                    Ac_triplets_[n_triplet++] 
+                        = Eigen::Triplet<float>(ir + n_dyn_constr, ic, Ac_clsn(ir,ic));
+                }
+            }
         }
     }
-    for (Eigen::SparseVector<float>::InnerIterator it(ah_sparse); it; ++it) {
-        Ac_triplets_[n_triplet++] = Eigen::Triplet<float>(it.index(), nc-1, it.value());
-    }
-    A_sparse.resize(nr, nc);
+    
+
+    A_sparse.resize(n_total_constraints, dim_cp+1);
     A_sparse.setFromTriplets(Ac_triplets_.begin(), Ac_triplets_.end());
     A_sparse.makeCompressed();
-    
-    // original
-    // Eigen::MatrixXf A = Eigen::MatrixXf::Zero(Ac.rows(), Ac.cols()+1);
-    // A.leftCols(Ac.cols()) = Ac;
-    // A.col(A.cols()-1) = ah;
-    // A_sparse = A.sparseView();
-    // A_sparse.makeCompressed();
 }
 
 

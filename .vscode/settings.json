@@ -467,7 +467,8 @@
         "source_location": "cpp",
         "target": "cpp",
         "print": "cpp",
-        "*.tpp": "cpp"
+        "*.tpp": "cpp",
+        "expected": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true,
     "C_Cpp.errorSquiggles": "disabled"
