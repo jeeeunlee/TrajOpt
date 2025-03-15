@@ -99,13 +99,6 @@ void TestInterface::updateJerkLimit(const Eigen::VectorXf &jm){
     ((CCCBTrajOptPlanner*)planner_)->setJerkLimit(jm);
 }
 
-
-void TestInterface::updateAlpha(float alpha)
-{
-    ((CCCBTrajOptPlanner*)planner_)->setAlpha(alpha);
-}
-
-        
 void TestInterface::solveFK(const Eigen::VectorXf &q, 
                   const Eigen::VectorXf &qdot,
                   Eigen::VectorXf &x, 

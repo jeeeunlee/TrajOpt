@@ -73,7 +73,6 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
     std::cout << "setting gripped box info"<< std::endl;
     std::cout << plancmd->gripped_box.pose_from_ee.transpose() << std::endl;
     std::cout << plancmd->gripped_box.dimension.transpose() << std::endl;
-    infc->updateAlpha(10);
     // infc->initInterface(plancmd);
     infc->doPlanning(plancmd);    
     infc->getPlannedTrajectory(0.1, traj_data);
@@ -110,7 +109,6 @@ TEST(CCCBTrajOptTest, AddGrippedBox){
 
 //     // generate_rand_problem(plancmd);    
 //     read_case(plancmd,robot_name,1);
-//     infc->updateAlpha(10);
 //     infc->doPlanning(plancmd);
 
 //     SOLUTION* imp_soln = new SOLUTION();

@@ -89,12 +89,6 @@ void NoColTestInterface::updateJerkLimit(const Eigen::VectorXf &jm){
     ((CCCBTrajOptPlanner*)planner_)->setJerkLimit(jm);
 }
 
-
-void NoColTestInterface::updateAlpha(float alpha)
-{
-    ((CCCBTrajOptPlanner*)planner_)->setAlpha(alpha);
-}
-
 void NoColTestInterface::getPlannedTrajectory(const float& time_step,
                                         TRAJ_DATA* traj_data){ 
     std::cout << "getPlannedTrajectory " << std::endl;;

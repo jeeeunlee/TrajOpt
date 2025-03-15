@@ -100,7 +100,6 @@ TEST(CCCBTrajOptTest, CheckNoColCaseQP){
 
     // generate_rand_problem(plancmd);
     read_case(plancmd, solution, 3);
-    infc->updateAlpha(50);
     infc->doPlanning(plancmd);
 
     SOLUTION* imp_soln = new SOLUTION();

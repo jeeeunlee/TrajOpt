@@ -35,9 +35,6 @@ class CCCBTrajOptSolver{
         // for check
         void getKnotValues(SOLUTION * soln);
 
-    public:
-        float alpha_;
-
     private:
         // instances
         CCCBTrajManager* cccb_traj_; 

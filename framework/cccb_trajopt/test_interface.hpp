@@ -46,7 +46,6 @@ class TestInterface : public EnvInterface {
       void updateVelLimit(const Eigen::VectorXf &vm);
       void updateAccLimit(const Eigen::VectorXf &am);
       void updateJerkLimit(const Eigen::VectorXf &jm);  
-      void updateAlpha(float alpha);
 
       void getPlannedTrajectory(const float& time_step,
                            TRAJ_DATA* traj_data);

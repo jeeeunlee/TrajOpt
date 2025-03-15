@@ -13,7 +13,6 @@
 CCCBTrajOptSolver::CCCBTrajOptSolver(CCCBTrajManager* _cccb_traj, 
                                     ObstacleManager* _obstacle_manager)
     : cccb_traj_(_cccb_traj), obstacle_manager_(_obstacle_manager){
-    alpha_ = 50.;
 }
 
 bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
@@ -60,15 +59,14 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         updateConstraints(cp_bar, hbar, Ac, ah, b);
         timer.printElapsedMiliSec("updateConstraints = ");
         // update collision constraints: 
-        updateColConstraints(cp_bar, hbar, Ac_clsn, b_clsn);
-        timer.printElapsedMiliSec("updateColConstraints(ray-traced) = ");
-
+        updateColConstraints(cp_bar, hbar, Ac_clsn, b_clsn);       
         // set final constraints for OSQP
         updateAsparseb(Ac, ah, Ac_clsn, b_clsn, A_sparse, b);
-        timer.printElapsedMiliSec("updateAsparseb = ");
+        timer.printElapsedMiliSec("updateColConstraints(ray-traced) = ");
+        // timer.printElapsedMiliSec("updateAsparseb = ");
         
         // solve problem
-        float retf = solver.qpprogOSQPSparse(Q_sparse, q, A_sparse, b, x);            
+        float retf = solver.qpprogOSQPSparse(Q_sparse, q, A_sparse, b, x);
         timer.printElapsedMiliSec("qpprogOSQP = ");
 
         // update
@@ -80,7 +78,7 @@ bool CCCBTrajOptSolver::solve(PLANNING_COMMAND* planning_cmd){
         float h_change = hbar-h;
         float h_diff_relative = abs(hbar-h)/hbar;
         float cp_diff_relative = (cp_bar-cp_vector).norm()/cp_bar.norm();
-        if( cp_diff_relative < 5e-3 || h_diff_relative < 5e-3){ // || h_diff < 5e-3
+        if( cp_diff_relative < 5e-3 || h_diff_relative < 5e-3  ){ // || h_diff < 5e-3
             std::cout<<"@@ n_iter ["<<n_iter<<"], h="<< h << " => " << N*h << std::endl;
             // std::cout<<"   retf = " << retf << ", h_diff(rel,abs) = " << h_diff_relative << ", " << h_change <<
             //         ", cp_diff(rel,abs) = " << cp_diff_relative << ", " << cp_change << std::endl;
@@ -130,7 +128,7 @@ void CCCBTrajOptSolver::updateQuadCostCoeffs(
     // tuning parameters: min 0.5*gamma*(del_h - alpha/gamma)^2 ~ -alpha*delh
     // if gamma is too small then Q become ill-conditioned
     float gamma = 5e-4f; // regulization term
-    float alpha = 5.f; // weight term
+    float alpha = 7.5f; // weight term
 
     // update Hessian only if none
     if( Q_sparse.rows() !=  CPdim+1 ){
@@ -224,7 +222,7 @@ void CCCBTrajOptSolver::updateConstraints(
     b.segment(2*dim_vc+2*dim_ac+dim_jc, dim_jc)= hbar*hbar*hbar*JCrep_ + Aj_*cp_bar + bj_;
 
     // position constr: -rmax < Ap_*dC + 0*dh < rmax
-    float rmax = 0.1f;
+    float rmax = 0.15f;
     b.segment(2*dim_vc+2*dim_ac+2*dim_jc, dim_pc) = Eigen::VectorXf::Constant(dim_pc, rmax);        
     b.segment(2*dim_vc+2*dim_ac+2*dim_jc+dim_pc, dim_pc) = Eigen::VectorXf::Constant(dim_pc, rmax);
 

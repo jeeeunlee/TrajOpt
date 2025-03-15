@@ -136,7 +136,7 @@ void RtclObstacleManager::updateConstraintsCoeff(void* _debug_data,
         const Eigen::VectorXf &dt = debug_data->selected_distances.segment(ind_offset, num_selected);
         const float relaxed_coeff = (float)ind_joint * ((float)num_joint_configs-1.f-(float)ind_joint) 
         / ( ((float)num_joint_configs-1.f)*((float)num_joint_configs-1.f) );
-        const Eigen::VectorXf &dt_relaxed = Eigen::VectorXf::Constant(num_selected, 0.5f*relaxed_coeff*relaxed_coeff);
+        const Eigen::VectorXf &dt_relaxed = Eigen::VectorXf::Constant(num_selected, 0.4f*relaxed_coeff*relaxed_coeff);
         // std::cout << "dt_relaxed = " << 1.f*relaxed_coeff*relaxed_coeff << std::endl;
         U.block(ind_offset, ind_joint*dim, num_selected, dim) = Ut;
         d.segment(ind_offset, num_selected) = dt-dt_relaxed;

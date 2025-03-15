@@ -92,7 +92,6 @@ class TrajoptInterface():
         print(self.planning_cmd.obstacles)
         self.planning_cmd.gripped_box.pose_from_ee =[ 0.0, 0.0, 0.2032, 1.0, 0.0, 0.0, 0.0]
         self.planning_cmd.gripped_box.dimension = [0.4064, 0.4064, 0.4064]
-        self.interface.updateAlpha(50)
         self.interface.doPlanning(self.planning_cmd)
 
         self.interface.getPlannedResult(self.solution)

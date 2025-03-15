@@ -90,7 +90,6 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def("updateVelLimit", &TestInterface::updateVelLimit)
       .def("updateAccLimit", &TestInterface::updateAccLimit)
       .def("updateJerkLimit", &TestInterface::updateJerkLimit)
-      .def("updateAlpha", &TestInterface::updateAlpha);
 
   py::class_<NoColTestInterface, EnvInterface>(m, "NoColTestInterface")
       .def(py::init<std::string>())
@@ -99,7 +98,6 @@ PYBIND11_MODULE(trajopt_planner, m) {
       .def("updateVelLimit", &NoColTestInterface::updateVelLimit)
       .def("updateAccLimit", &NoColTestInterface::updateAccLimit)
       .def("updateJerkLimit", &NoColTestInterface::updateJerkLimit)
-      .def("updateAlpha", &NoColTestInterface::updateAlpha);
 
   py::class_<SensorData>(m, "SensorData")
       .def(py::init<int>())
