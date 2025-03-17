@@ -80,6 +80,20 @@ cc_test(
 )
 
 cc_test(
+    name = "collision_constraint_validation_furniture_test",
+    srcs = ["collision_constraint_validation_furniture_test.cc"],
+    deps = [
+        "json_utils",
+        "//rossy_utils:rossy_utils",
+        "//rossy_utils:robot_system",        
+        "//rtcl:rtcl_h",
+        "//framework:cccb_trajopt",
+        "@com_google_googletest//:gtest_main",
+        "@nvidia_cuda//:cuda",
+    ],
+)
+
+cc_test(
     name = "collision_constraint_selection_test",
     srcs = ["collision_constraint_selection_test.cc"],
     deps = [
