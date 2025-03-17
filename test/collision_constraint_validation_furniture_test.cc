@@ -26,15 +26,20 @@ class CollisionConstraintValidationTest : public ::testing::Test {
         std::unique_ptr<rtcl::RtclInterface> rtcl_interface_;
 
         std::vector<Eigen::VectorXf> joint_path_;
-        std::vector<Eigen::VectorXf> constraints_vertices_;
-        std::vector<Eigen::VectorXf> selected_collision_constraints_;
-        std::vector<Eigen::VectorXf> simple_selected_collision_constraints_;
+        std::vector<float> ray_dir_projected_; //[Nc][dim]
+        std::vector<float> distance_; //[Nc]
+        std::vector<float> selected_ray_dir_projected_;
+        std::vector<float> selected_distance_;
+        std::vector<float> simple_selected_ray_dir_projected_;
+        std::vector<float> simple_selected_distance_;
+        std::vector<uint> selected_indices_;
+        std::vector<uint> selected_indices_simple_;
     private:
 
         nlohmann::json problem;
 
-        rtcl::CollisionCheckerDataSingle debug_data;  
-        rtcl::CollisionCheckerData debug_data_batch;
+        rtcl::CollisionCheckerDataSingle debug_data_;  
+        rtcl::CollisionCheckerData debug_data_batch_;
 
     public:
         CollisionConstraintValidationTest() {
@@ -47,9 +52,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
             set_obstacles(problem["obstacles"]);
             std::cout<< " set joint_path " << std::endl;
             json_listoflist_to_vecofeigen(problem["joint_path"], joint_path_, false); 
-
-            // Since the number of collision constraints is 2 * Dim, we reserve the space for the selected collision constraints
-            selected_collision_constraints_.reserve(joint_path_.size() * 2 * Dim);
+            std::cout << " joint_path = "<< joint_path_.size() << std::endl;
         }
 
     void set_obstacles(const nlohmann::json &j_obs){
@@ -107,42 +110,63 @@ class CollisionConstraintValidationTest : public ::testing::Test {
     }
 
     void updateCollisionConstraints(Eigen::VectorXf &joint_config){
+
+        uint dim = joint_config.size();
         
         // compute collision constraints for single joint configuration with quickhull
         auto robot_collision_free = rtcl_interface_->checkJointConfigCollisionDistance(joint_config);
-        rtcl_interface_->loadDebugDataSingle(debug_data);
+        rtcl_interface_->loadDebugDataSingle(debug_data_);
+        ray_dir_projected_ = debug_data_.ray_dir_projected;
+        distance_ = debug_data_.distance;
+        selected_indices_ = debug_data_.selected_indices;
+        uint num_selected = debug_data_.selected_num_per_configs[0];
+        selected_ray_dir_projected_.resize(num_selected*dim);
+        Eigen::MatrixXf tmp = debug_data_.selected_ray_direction_projected.transpose();
+        std::copy(tmp.data(), 
+                tmp.data() + num_selected*dim, 
+                selected_ray_dir_projected_.begin());
+        selected_distance_.resize(num_selected);
+        std::copy(debug_data_.selected_distances.data(), 
+                debug_data_.selected_distances.data() + num_selected, 
+                selected_distance_.begin());
 
-        std::vector<float>& tmp_constraints_vertices_ = debug_data.constraints_vertices;
-        // Convert tmp_constraints_vertices_ into vector of Eigen::VectorXf
-        constraints_vertices_.clear();
-        constraints_vertices_.reserve(tmp_constraints_vertices_.size() / Dim);
-        for (size_t i = 0; i < tmp_constraints_vertices_.size(); i += Dim) {
-            Eigen::VectorXf constraint(Dim);
-            for (size_t j = 0; j < Dim; j++) {
-                constraint[j] = tmp_constraints_vertices_[i + j];
-            }
-            constraints_vertices_.push_back(constraint);
-        }
-
-        std::vector<uint>& selected_indices_ = debug_data.selected_indices;
-        uint num_selected = debug_data.selected_num_per_configs[0];
-        selected_collision_constraints_.resize(num_selected);
-        for(uint i(0); i<num_selected; ++i){
-            selected_collision_constraints_[i] = constraints_vertices_[selected_indices_[i]];
-        }
+        //check
+        // int check_select_id(0);
+        // for(int idim(0); idim < dim; ++idim)
+        //     std::cout << selected_ray_dir_projected_[check_select_id*dim + idim] << ", ";
+        // std::cout << std::endl;
+        // std::cout << debug_data_.selected_ray_direction_projected.row(check_select_id) << std::endl;        
+        // for(int idim(0); idim < dim; ++idim)
+        //     std::cout << ray_dir_projected_[selected_indices_[check_select_id]*dim + idim] << ", ";
+        // std::cout << std::endl;
+        // std::cout << selected_distance_[check_select_id] << "=" << distance_[selected_indices_[check_select_id]] << std::endl;
 
 
         // compute collision constraints for single joint configuration with simple selection
         bool robot_collision_free2 = rtcl_interface_->checkJointConfigsCollisionDistance({joint_config});
-        rtcl_interface_->loadDebugData(debug_data_batch);
+            rtcl_interface_->loadDebugData(debug_data_batch_);
 
         // In the same way, we process the simple selection
-        std::vector<uint>& selected_indices_simple_ = debug_data_batch.selected_indices;
-        uint num_simple_selected = debug_data_batch.selected_num_per_configs[0];
-        simple_selected_collision_constraints_.resize(num_simple_selected);
-        for(uint i(0); i<num_simple_selected; ++i){
-            simple_selected_collision_constraints_[i] = constraints_vertices_[selected_indices_simple_[i]];
-        }
+        selected_indices_simple_ = debug_data_batch_.selected_indices;
+        uint num_simple_selected = debug_data_batch_.selected_num_per_configs[0];
+        simple_selected_ray_dir_projected_.resize(num_simple_selected*dim);
+        tmp = debug_data_batch_.selected_ray_direction_projected.transpose();
+        std::copy(tmp.data(), 
+                tmp.data() + num_simple_selected*dim, 
+                simple_selected_ray_dir_projected_.begin());
+        simple_selected_distance_.resize(num_simple_selected);
+        std::copy(debug_data_batch_.selected_distances.data(), 
+                debug_data_batch_.selected_distances.data() + num_simple_selected, 
+                simple_selected_distance_.begin());
+
+        // for(int idim(0); idim < dim; ++idim)
+        //     std::cout << simple_selected_ray_dir_projected_[check_select_id*dim + idim] << ", ";
+        // std::cout << std::endl;
+        // std::cout << debug_data_batch_.selected_ray_direction_projected.row(check_select_id) << std::endl;
+        // for(int idim(0); idim < dim; ++idim)
+        //     std::cout << ray_dir_projected_[selected_indices_simple_[check_select_id]*dim + idim] << ", ";
+        // std::cout << std::endl;
+        // std::cout << simple_selected_distance_[check_select_id] << "=" << distance_[selected_indices_simple_[check_select_id]] << std::endl;
     }  
 };
 
@@ -162,13 +186,17 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
     bool_ground_truth.resize(num_samples);
     
     int poseId = 0;
-    for (auto &joint_config: joint_path_){
+    for (int poseId(0); poseId< joint_path_.size(); poseId++){
+        auto joint_config = joint_path_[poseId];
+        std::cout << poseId << "th joint =================================" << std::endl;
         // update collision constraints for both quickhull and simple selection
         updateCollisionConstraints(joint_config);
         std::array<int,4> counts = {0,0,0,0};
 
             
-        std::cout << "simple selection (Andrew's)"<<std::endl;
+        std::cout << "simple selection (Andrew's) : ";
+        for(auto &ind: selected_indices_simple_) std::cout << ind << ", ";
+        std::cout<<std::endl;
         std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
 
         for(auto &alpha: alpha_arr_new){
@@ -176,12 +204,14 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
             rtcl::check_constraint(
                 bool_constraint,
                 poses_normalized,
-                constraints_vertices_);
+                ray_dir_projected_,
+                distance_);
 
             rtcl::check_constraint(
                 bool_selected_constraint,
                 poses_normalized,
-                simple_selected_collision_constraints_);
+                simple_selected_ray_dir_projected_,
+                simple_selected_distance_);
 
             rtcl::count_booleans(counts,
                 bool_selected_constraint,
@@ -192,7 +222,9 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
         }
 
 
-        std::cout << "quick hull " << std::endl;
+        std::cout << "quick hull : ";
+        for(auto &ind: selected_indices_) std::cout << ind << ", ";
+        std::cout<<std::endl;
         std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
         // quick hull
         for(auto &alpha: alpha_arr_new){
@@ -200,11 +232,13 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
             rtcl::check_constraint(
                 bool_constraint,
                 poses_normalized,
-                constraints_vertices_);
+                ray_dir_projected_,
+                distance_);
             rtcl::check_constraint(
                 bool_selected_constraint,
                 poses_normalized,
-                simple_selected_collision_constraints_);
+                selected_ray_dir_projected_,
+                selected_distance_);
 
             rtcl::count_booleans(counts,
                 bool_selected_constraint,
@@ -230,24 +264,26 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
             rtcl::check_constraint(
                 bool_constraint,
                 poses_normalized,
-                selected_collision_constraints_);
+                selected_ray_dir_projected_,
+                selected_distance_);
             rtcl::count_booleans(counts,
                 bool_constraint,
                 bool_ground_truth );
 
-            std::cout << alpha << "\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
+            std::cout << alpha << " (qh)\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
                     << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;     
 
             // simple selection
             rtcl::check_constraint(
                 bool_constraint,
                 poses_normalized,
-                simple_selected_collision_constraints_);
+                simple_selected_ray_dir_projected_,
+                simple_selected_distance_);
             rtcl::count_booleans(counts,
                 bool_constraint,
                 bool_ground_truth );
 
-            std::cout << alpha << "\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
+            std::cout << alpha << " (sp)\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
                     << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;      
         }
     }
