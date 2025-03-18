@@ -11,7 +11,7 @@
 
 inline constexpr uint Dim = 8;
 inline constexpr uint num_samples = pow(3,8)-1; // sampling on [-1,0,1] excluding {0,0..0}
-inline constexpr uint trajId = 1; // trajectory id, can be either 1 or 5
+inline constexpr uint trajId = 0; // trajectory id, can be either 0 or 1
 constexpr std::array<float, 12> alpha_arr = {
     0.025f, 0.050f, 0.075f, 0.100f, 0.125f, 0.150f,
     0.175f, 0.200f, 0.225f, 0.250f, 0.275f, 0.300f
@@ -131,7 +131,7 @@ class CollisionConstraintValidationTest : public ::testing::Test {
                 selected_distance_.begin());
 
         //check
-        // int check_select_id(0);
+        // int check_select_id(3);
         // for(int idim(0); idim < dim; ++idim)
         //     std::cout << selected_ray_dir_projected_[check_select_id*dim + idim] << ", ";
         // std::cout << std::endl;
@@ -140,7 +140,6 @@ class CollisionConstraintValidationTest : public ::testing::Test {
         //     std::cout << ray_dir_projected_[selected_indices_[check_select_id]*dim + idim] << ", ";
         // std::cout << std::endl;
         // std::cout << selected_distance_[check_select_id] << "=" << distance_[selected_indices_[check_select_id]] << std::endl;
-
 
         // compute collision constraints for single joint configuration with simple selection
         bool robot_collision_free2 = rtcl_interface_->checkJointConfigsCollisionDistance({joint_config});
@@ -184,21 +183,31 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
     bool_constraint.resize(num_samples);
     bool_selected_constraint.resize(num_samples);
     bool_ground_truth.resize(num_samples);
+
+    std::vector<std::array<int,4>> counts_simple_selection_vs_all = {
+        {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0} };
+    std::vector<std::array<int,4>> counts_quickhull_vs_all = {
+        {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0} };
+    std::vector<std::array<int,4>> counts_simple_selection_vs_ground_truth = {
+        {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0} };
+    std::vector<std::array<int,4>> counts_quickhull_vs_ground_truth = {
+        {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0} };
+    std::vector<std::array<int,4>> counts_all_vs_ground_truth = {
+        {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0} };
     
     int poseId = 0;
     for (int poseId(0); poseId< joint_path_.size(); poseId++){
         auto joint_config = joint_path_[poseId];
-        std::cout << poseId << "th joint =================================" << std::endl;
+        std::cout << poseId << "th joint " << std::endl;
         // update collision constraints for both quickhull and simple selection
         updateCollisionConstraints(joint_config);
         std::array<int,4> counts = {0,0,0,0};
 
-            
-        std::cout << "simple selection (Andrew's) : ";
-        for(auto &ind: selected_indices_simple_) std::cout << ind << ", ";
-        std::cout<<std::endl;
-        std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
-
+        // std::cout << "simple selection (Andrew's)(" << simple_selected_distance_.size() << ") : ";
+        // for(auto &ind: selected_indices_simple_) std::cout << ind << ", ";
+        // std::cout<<std::endl;
+        // std::cout << "alpha \t FF(TrueNegative) FT(FalseNegative) \t TT(TruePositive) TF(FalsePositive)"<<std::endl;
+        int i_alpha = 0;
         for(auto &alpha: alpha_arr_new){
             genNormPose<Dim>(poses_normalized, alpha);
             rtcl::check_constraint(
@@ -217,16 +226,20 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
                 bool_selected_constraint,
                 bool_constraint );
 
-            std::cout << alpha << "\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
-                    << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;
+            // std::cout << alpha << " " << counts[0] << " " << counts[1] << " " 
+            //         << counts[2] << " " << counts[3] << " " << std::endl;
+
+            for(int k = 0; k < 4; k++) counts_simple_selection_vs_all[i_alpha][k] += counts[k];
+            i_alpha++;
         }
 
 
-        std::cout << "quick hull : ";
-        for(auto &ind: selected_indices_) std::cout << ind << ", ";
-        std::cout<<std::endl;
-        std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
+        // std::cout << "quick hull(" << selected_distance_.size() << ") : ";
+        // for(auto &ind: selected_indices_) std::cout << ind << ", ";
+        // std::cout<<std::endl;
+        // std::cout << "alpha \t FF(TrueNegative) FT(FalseNegative) \t TT(TruePositive) TF(FalsePositive)"<<std::endl;
         // quick hull
+        i_alpha = 0;
         for(auto &alpha: alpha_arr_new){
             genNormPose<Dim>(poses_normalized, alpha);
             rtcl::check_constraint(
@@ -244,16 +257,20 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
                 bool_selected_constraint,
                 bool_constraint );
 
-            std::cout << alpha << "\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
-                    << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;
+            // std::cout << alpha << " " << counts[0] << " " << counts[1] << " " 
+            //         << counts[2] << " " << counts[3] << " " << std::endl;
+
+            for(int k = 0; k < 4; k++) counts_quickhull_vs_all[i_alpha][k] += counts[k];
+            i_alpha++;
         }
 
-        std::cout << "=================================" << std::endl;
+        // std::cout << "" << std::endl;
         // CORNER NORMALIZED    
         // example : rss_RO_result_corner_normalized_0.030000.bin
         std::string result_dir_path = CURRENT_DIR "test/testdata/rt_result_sizhe_furniture/t" + std::to_string(trajId) + "/p" + std::to_string(poseId) + "/";    
-        std::cout << "alpha \t FF(True Negative) FT(False Negative) \t TT(True Positive) TF(False Positive)"<<std::endl;
-        for(auto &alpha: alpha_arr){
+        // std::cout << "alpha \t FF(TrueNegative) FT(FalseNegative) \t TT(TruePositive) TF(FalsePositive)"<<std::endl;
+        i_alpha = 0;
+        for(auto &alpha: alpha_arr_new){
             // read Sizhe's result
             readBin(result_dir_path + "rss_RO_result_corner_normalized_" + std::to_string(alpha)+ ".bin", result);
             for (size_t i = 0; i < result.size(); ++i) {
@@ -269,9 +286,10 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
             rtcl::count_booleans(counts,
                 bool_constraint,
                 bool_ground_truth );
+            for(int k = 0; k < 4; k++) counts_quickhull_vs_ground_truth[i_alpha][k] += counts[k];
 
-            std::cout << alpha << " (qh)\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
-                    << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;     
+            // std::cout << alpha << " (qh)\t" << counts[0] << " " << counts[1] << " " 
+            //         << counts[2] << " " << counts[3] << " " << std::endl;     
 
             // simple selection
             rtcl::check_constraint(
@@ -282,10 +300,58 @@ TEST_F(CollisionConstraintValidationTest, DataCornerNormalized){
             rtcl::count_booleans(counts,
                 bool_constraint,
                 bool_ground_truth );
+            for(int k = 0; k < 4; k++) counts_simple_selection_vs_ground_truth[i_alpha][k] += counts[k];
 
-            std::cout << alpha << " (sp)\t" << counts[0] << "\t\t" << counts[1] << "\t\t\t" 
-                    << counts[2] << "\t\t" << counts[3] << "\t\t" << std::endl;      
+            // std::cout << alpha << " (sp)\t" << counts[0] << " " << counts[1] << " " 
+            //         << counts[2] << " " << counts[3] << " " << std::endl;      
+
+            // all
+            rtcl::check_constraint(
+                bool_constraint,
+                poses_normalized,
+                ray_dir_projected_,
+                distance_);
+            rtcl::count_booleans(counts,
+                bool_constraint,
+                bool_ground_truth );
+            for(int k = 0; k < 4; k++) counts_all_vs_ground_truth[i_alpha][k] += counts[k];
+
+            
+            i_alpha++;
         }
     }
+
+    std::cout << " simple_selection_vs_all =================================" << std::endl;
+    std::cout << "alpha FF(TrueNegative) FT(FalseNegative) TT(TruePositive) TF(FalsePositive)"<<std::endl;
+    for(int i = 0; i < alpha_arr_new.size(); i++){
+        std::cout << alpha_arr_new[i] << " " << counts_simple_selection_vs_all[i][0] << " " << counts_simple_selection_vs_all[i][1] << " " 
+                << counts_simple_selection_vs_all[i][2] << " " << counts_simple_selection_vs_all[i][3] << " " << std::endl;
+    }
+    std::cout << " quickhull_vs_all =================================" << std::endl;
+    std::cout << "alpha FF(TrueNegative) FT(FalseNegative) TT(TruePositive) TF(FalsePositive)"<<std::endl;
+    for(int i = 0; i < alpha_arr_new.size(); i++){
+        std::cout << alpha_arr_new[i] << " " << counts_quickhull_vs_all[i][0] << " " << counts_quickhull_vs_all[i][1] << " " 
+                << counts_quickhull_vs_all[i][2] << " " << counts_quickhull_vs_all[i][3] << " " << std::endl;
+    }   
+    std::cout << " simple_selection_vs_ground_truth =================================" << std::endl;
+    std::cout << "alpha FF(TrueNegative) FT(FalseNegative) TT(TruePositive) TF(FalsePositive)"<<std::endl;
+    for(int i = 0; i < alpha_arr_new.size(); i++){
+        std::cout << alpha_arr_new[i] << " " << counts_simple_selection_vs_ground_truth[i][0] << " " << counts_simple_selection_vs_ground_truth[i][1] << " " 
+                << counts_simple_selection_vs_ground_truth[i][2] << " " << counts_simple_selection_vs_ground_truth[i][3] << " " << std::endl;
+    }       
+    std::cout << " quickhull_vs_ground_truth =================================" << std::endl;
+    std::cout << "alpha FF(TrueNegative) FT(FalseNegative) TT(TruePositive) TF(FalsePositive)"<<std::endl;
+    for(int i = 0; i < alpha_arr_new.size(); i++){
+        std::cout << alpha_arr_new[i] << " " << counts_quickhull_vs_ground_truth[i][0] << " " << counts_quickhull_vs_ground_truth[i][1] << " " 
+                << counts_quickhull_vs_ground_truth[i][2] << " " << counts_quickhull_vs_ground_truth[i][3] << " " << std::endl;
+    }      
+    std::cout << " all_vs_ground_truth =================================" << std::endl;
+    std::cout << "alpha FF(TrueNegative) FT(FalseNegative) TT(TruePositive) TF(FalsePositive)"<<std::endl;
+    for(int i = 0; i < alpha_arr_new.size(); i++){
+        std::cout << alpha_arr_new[i] << " " << counts_all_vs_ground_truth[i][0] << " " << counts_all_vs_ground_truth[i][1] << " " 
+                << counts_all_vs_ground_truth[i][2] << " " << counts_all_vs_ground_truth[i][3] << " " << std::endl;
+    }
+    
+    
 }
 
